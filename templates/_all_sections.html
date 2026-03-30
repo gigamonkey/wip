@@ -5,7 +5,7 @@
 <ul {% if sec_name == "up next" %}id="up-next-list" class="sortable-list"{% endif %}>
   {% for item in sections[sec_name] %}
   <li {% if sec_name == "up next" %}draggable="true" data-index="{{ loop.index0 }}"{% endif %}>
-    <span class="item-text" {% if sec_name == "up next" %}ondblclick="startInlineEdit(this, '{{ project.name }}', '{{ sec_name }}')"{% endif %}>{{ item.text | markdown }}</span>
+    <span class="item-text" {% if sec_name == "up next" %}data-raw="{{ item.text }}" ondblclick="startInlineEdit(this, '{{ project.name }}', '{{ sec_name }}')"{% endif %}>{{ item.text | markdown }}</span>
     {% if sec_name == "up next" %}
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/start" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
@@ -55,7 +55,7 @@
 // Double-click to edit
 function startInlineEdit(span, projectName, section) {
   var li = span.closest('li');
-  var oldText = span.textContent.trim();
+  var oldText = span.getAttribute('data-raw') || span.textContent.trim();
   li.innerHTML = '<form class="edit-inline" onsubmit="return submitInlineEdit(this, \'' + projectName + '\', \'' + encodeURIComponent(oldText) + '\')">' +
     '<textarea rows="2" name="new_text">' + oldText.replace(/</g, '&lt;') + '</textarea>' +
     '<div class="edit-buttons"><button class="btn-sm" type="submit">Save</button> ' +
