@@ -125,7 +125,10 @@ def dashboard():
             "description": project["description"],
             "tasks": items_un[:3],
             "more": total - min(total, 3),
+            "ip_count": len(items_ip),
+            "total": total,
         })
+    backlog_by_project.sort(key=lambda p: (p["ip_count"], p["total"]), reverse=True)
     return render_template("dashboard.html", in_progress=in_progress, backlog_by_project=backlog_by_project)
 
 
