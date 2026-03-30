@@ -216,7 +216,7 @@ button.btn-sm:hover {
 }
 
 .sortable-list li.drag-over-bottom {
-  border-top: 2px solid var(--pico-primary);
+  border-bottom: 2px solid var(--pico-primary);
 }
 
 /* Task row: flex layout inside native bulleted li */
