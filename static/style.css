@@ -309,6 +309,8 @@ a.project-tile:hover article {
   width: auto;
   margin-right: 0.3rem;
   vertical-align: middle;
+  appearance: auto;
+  -webkit-appearance: checkbox;
 }
 
 /* Add project form */
