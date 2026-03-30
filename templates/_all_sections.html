@@ -13,6 +13,7 @@
       <input type="hidden" name="item" value="{{ item.text }}">
       <button class="btn-sm btn-start" title="Start">&#9654;</button>
     </form>
+    <button class="btn-sm btn-copy" title="Copy to clipboard" onclick="copyItemText(this, {{ item.text | tojson }})">&#128203;</button>
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/delete" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
       <input type="hidden" name="section" value="{{ sec_name }}">
@@ -57,6 +58,15 @@
 {% endfor %}
 
 <script>
+// Copy item text to clipboard
+function copyItemText(btn, text) {
+  navigator.clipboard.writeText(text).then(function() {
+    var orig = btn.innerHTML;
+    btn.innerHTML = '&#10003;';
+    setTimeout(function() { btn.innerHTML = orig; }, 1200);
+  });
+}
+
 // Double-click to edit
 function startInlineEdit(span, projectName, section) {
   var li = span.closest('li');
