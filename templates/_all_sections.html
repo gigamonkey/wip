@@ -128,24 +128,31 @@ function initDragAndDrop() {
     li.addEventListener('dragend', function() {
       li.classList.remove('dragging');
       dragItem = null;
-      list.querySelectorAll('li').forEach(function(el) { el.classList.remove('drag-over'); });
+      list.querySelectorAll('li').forEach(function(el) {
+        el.classList.remove('drag-over-top', 'drag-over-bottom');
+      });
       saveOrder(list);
     });
     li.addEventListener('dragover', function(e) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       if (li !== dragItem && li.hasAttribute('draggable')) {
-        li.classList.add('drag-over');
+        var items = Array.from(list.querySelectorAll('li[draggable]'));
+        var dragIdx = items.indexOf(dragItem);
+        var dropIdx = items.indexOf(li);
+        list.querySelectorAll('li').forEach(function(el) {
+          el.classList.remove('drag-over-top', 'drag-over-bottom');
+        });
+        li.classList.add(dragIdx < dropIdx ? 'drag-over-bottom' : 'drag-over-top');
       }
     });
     li.addEventListener('dragleave', function() {
-      li.classList.remove('drag-over');
+      li.classList.remove('drag-over-top', 'drag-over-bottom');
     });
     li.addEventListener('drop', function(e) {
       e.preventDefault();
-      li.classList.remove('drag-over');
+      li.classList.remove('drag-over-top', 'drag-over-bottom');
       if (dragItem && dragItem !== li && li.hasAttribute('draggable')) {
-        // Insert dragItem before or after li based on position
         var items = Array.from(list.querySelectorAll('li[draggable]'));
         var dragIdx = items.indexOf(dragItem);
         var dropIdx = items.indexOf(li);

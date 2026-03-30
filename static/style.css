@@ -211,7 +211,11 @@ button.btn-sm:hover {
   opacity: 0.4;
 }
 
-.sortable-list li.drag-over {
+.sortable-list li.drag-over-top {
+  border-top: 2px solid var(--pico-primary);
+}
+
+.sortable-list li.drag-over-bottom {
   border-top: 2px solid var(--pico-primary);
 }
 
