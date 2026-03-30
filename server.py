@@ -355,6 +355,45 @@ def task_return(name):
     return _render_after_mutation(project)
 
 
+@app.route("/api/project/<name>/task/reopen", methods=["POST"])
+def task_reopen(name):
+    """Move an item from Done back to In progress, stripping any timestamp suffix."""
+    project = get_project(name)
+    item_text = request.form.get("item", "").strip()
+    if not item_text:
+        return "Item text required", 400
+
+    todo_path = wip.resolve_todo_file(project["home"])
+    if not todo_path:
+        return "No TODO.md found", 404
+
+    text = todo_path.read_text()
+    found = _find_item_in_section(text, item_text, "done")
+    if not found:
+        return f"Item not found in Done: {item_text}", 404
+
+    src_heading, heading_end, matched_text, raw, item_start, item_end = found
+
+    # Remove from Done
+    abs_start = heading_end + item_start
+    abs_end = heading_end + item_end
+    text = text[:abs_start] + text[abs_end:]
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    # Strip timestamp suffix from raw: "- text (2026-03-30T19:49:03)\n" -> "- text\n"
+    clean_raw = re.sub(r"\s*\(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\)\s*$", "", raw.rstrip()) + "\n"
+
+    # Add to In progress
+    text, ip_match = wip.ensure_in_progress_section(text)
+    _, ip_start, ip_end = ip_match
+    text = text[:ip_end].rstrip("\n") + "\n\n" + clean_raw.rstrip("\n") + "\n\n" + text[ip_end:].lstrip("\n")
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = wip.ensure_trailing_newline(text)
+    todo_path.write_text(text)
+
+    return _render_after_mutation(project)
+
+
 @app.route("/api/project/<name>/task/start", methods=["POST"])
 def task_start(name):
     project = get_project(name)

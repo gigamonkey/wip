@@ -30,6 +30,12 @@
       <button class="btn-sm" title="Return to backlog">&#8617;</button>
     </form>
     {% endif %}
+    {% if sec_name == "done" %}
+    <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/reopen" hx-target="#all-sections" hx-swap="innerHTML">
+      <input type="hidden" name="item" value="{{ item.text }}">
+      <button class="btn-sm btn-start" title="Move to In progress">&#9654;</button>
+    </form>
+    {% endif %}
     </span>
     </div>
   </li>
