@@ -261,7 +261,8 @@ ul li {
   color: var(--pico-color);
 }
 
-.add-input input[type="text"] {
+.add-input input[type="text"],
+.add-input textarea {
   margin: 0;
   padding: 0.1rem 0.3rem;
   border: 1px solid #ccc;

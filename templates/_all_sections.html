@@ -35,14 +35,15 @@
   {% endfor %}
   {% if sec_name == "backlog" %}
   <li class="add-item">
-    <span class="add-trigger" onclick="var inp=this.parentElement.querySelector('.add-input input[type=text]'); this.parentElement.querySelector('.add-input').style.display='inline'; this.style.display='none'; setTimeout(function(){inp.focus()}, 50);">+</span>
+    <span class="add-trigger" onclick="var inp=this.parentElement.querySelector('.add-input textarea'); this.parentElement.querySelector('.add-input').style.display='inline'; this.style.display='none'; setTimeout(function(){inp.focus()}, 50);">+</span>
     <form class="add-input inline-action" style="display:none"
           hx-post="/api/project/{{ project.name }}/task/add"
           hx-target="#all-sections"
           hx-swap="innerHTML">
       <input type="hidden" name="section" value="backlog">
-      <input type="text" name="item" placeholder="New item&hellip;" required
-             onblur="var el=this; setTimeout(function(){ if(el.value.trim()) el.form.requestSubmit(); else { el.form.style.display='none'; el.closest('.add-item').querySelector('.add-trigger').style.display=''; } }, 150)">
+      <textarea name="item" placeholder="New item&hellip;" required rows="2"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();if(this.value.trim())this.form.requestSubmit();}"
+                onblur="var el=this; setTimeout(function(){ if(el.value.trim()) el.form.requestSubmit(); else { el.form.style.display='none'; el.closest('.add-item').querySelector('.add-trigger').style.display=''; } }, 150)"></textarea>
     </form>
   </li>
   {% endif %}
