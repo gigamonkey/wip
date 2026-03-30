@@ -5,6 +5,7 @@ import json
 import os
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from flask import Flask, render_template, request, abort, redirect, url_for
@@ -281,7 +282,12 @@ def task_done(name):
     abs_end = heading_end + item_end
     text = text[:abs_start] + text[abs_end:]
 
-    # Append to Done section (raw is used as-is, no checkbox transformation)
+    # Prepend ISO-8601 timestamp to the raw item text
+    timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    if raw.startswith("- "):
+        raw = f"- {timestamp} {raw[2:]}"
+
+    # Append to Done section
     done_sec = wip.get_section_content(text, "Done")
     if not done_sec:
         text = text.rstrip("\n") + "\n\n## Done\n\n"
