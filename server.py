@@ -94,7 +94,7 @@ def project_summary(project):
     }
     if text:
         ip = get_section_items(text, "in progress")
-        un = get_section_items(text, "up next")
+        un = get_section_items(text, "backlog")
         summary["in_progress"] = ip[:3]
         summary["up_next"] = un[:1]
         summary["in_progress_count"] = len(ip)
@@ -116,7 +116,7 @@ def dashboard():
         items_un = []
         if text:
             items_ip = [i for i in get_section_items(text, "in progress") if not i["checked"]]
-            items_un = [i for i in get_section_items(text, "up next") if not i["checked"]]
+            items_un = [i for i in get_section_items(text, "backlog") if not i["checked"]]
         for item in items_ip:
             in_progress.append({"project": project["name"], **item})
         total = len(items_un)
@@ -138,10 +138,10 @@ def project_detail(name):
     text, todo_path = read_todo(project)
     sections = {}
     if text:
-        for sec_name in ("in progress", "up next", "done"):
+        for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = get_section_items(text, sec_name)
     else:
-        for sec_name in ("in progress", "up next", "done"):
+        for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = []
     return render_template("project.html", project=project, sections=sections)
 
@@ -199,10 +199,10 @@ def project_sections(name):
     text, _ = read_todo(project)
     sections = {}
     if text:
-        for sec_name in ("in progress", "up next", "done"):
+        for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = get_section_items(text, sec_name)
     else:
-        for sec_name in ("in progress", "up next", "done"):
+        for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = []
     return render_template("_all_sections.html", project=project, sections=sections)
 
@@ -211,7 +211,7 @@ def project_sections(name):
 def task_add(name):
     project = get_project(name)
     item = request.form.get("item", "").strip()
-    section = request.form.get("section", "up next").strip()
+    section = request.form.get("section", "backlog").strip()
     if not item:
         return "Item text required", 400
 
@@ -222,8 +222,8 @@ def task_add(name):
     text = todo_path.read_text()
 
     # Ensure section exists
-    if section.lower() == "up next":
-        text, match = wip.ensure_up_next_section(text)
+    if section.lower() == "backlog":
+        text, match = wip.ensure_backlog_section(text)
     elif section.lower() == "in progress":
         text, match = wip.ensure_in_progress_section(text)
     else:
@@ -283,7 +283,7 @@ def task_done(name):
 
 @app.route("/api/project/<name>/task/return", methods=["POST"])
 def task_return(name):
-    """Move an item from In progress back to the top of Up next."""
+    """Move an item from In progress back to the top of Backlog."""
     project = get_project(name)
     item_text = request.form.get("item", "").strip()
     if not item_text:
@@ -322,8 +322,8 @@ def task_return(name):
     text = text[:abs_start] + text[abs_end:]
     text = re.sub(r"\n{3,}", "\n\n", text)
 
-    # Add to top of Up next
-    text, un_match = wip.ensure_up_next_section(text)
+    # Add to top of Backlog
+    text, un_match = wip.ensure_backlog_section(text)
     _, un_start, un_end = un_match
     un_heading_end = text.index("\n", un_start) + 1
     text = text[:un_heading_end] + "\n" + raw.rstrip("\n") + "\n\n" + text[un_heading_end:].lstrip("\n")
@@ -347,10 +347,10 @@ def task_start(name):
 
     text = todo_path.read_text()
 
-    # Find in Up next
-    match = wip.find_section_case_insensitive(text, "up next")
+    # Find in Backlog
+    match = wip.find_section_case_insensitive(text, "backlog")
     if not match:
-        return "No 'Up next' section", 404
+        return "No 'Backlog' section", 404
 
     heading, sec_start, sec_end = match
     heading_end = text.index("\n", sec_start) + 1
@@ -364,11 +364,11 @@ def task_start(name):
             break
 
     if not found:
-        return f"Item not found in Up next: {item_text}", 404
+        return f"Item not found in Backlog: {item_text}", 404
 
     item_t, raw, item_start, item_end = found
 
-    # Remove from Up next
+    # Remove from Backlog
     abs_start = heading_end + item_start
     abs_end = heading_end + item_end
     text = text[:abs_start] + text[abs_end:]
@@ -605,10 +605,10 @@ def _render_project_sections(project):
     text, _ = read_todo(project)
     sections = {}
     if text:
-        for sec_name in ("in progress", "up next", "done"):
+        for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = get_section_items(text, sec_name)
     else:
-        for sec_name in ("in progress", "up next", "done"):
+        for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = []
     return render_template("_all_sections.html", project=project, sections=sections)
 

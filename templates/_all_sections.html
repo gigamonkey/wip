@@ -1,14 +1,14 @@
-{% for sec_name, sec_label in [("in progress", "In progress"), ("up next", "Up next"), ("done", "Done")] %}
+{% for sec_name, sec_label in [("in progress", "In progress"), ("backlog", "Backlog"), ("done", "Done")] %}
 <h2>{{ sec_label }}</h2>
 
-{% if sections[sec_name] or sec_name == "up next" %}
-<ul {% if sec_name == "up next" %}id="up-next-list" class="sortable-list"{% endif %}>
+{% if sections[sec_name] or sec_name == "backlog" %}
+<ul {% if sec_name == "backlog" %}id="backlog-list" class="sortable-list"{% endif %}>
   {% for item in sections[sec_name] %}
-  <li {% if sec_name == "up next" %}draggable="true" data-index="{{ loop.index0 }}"{% endif %}>
+  <li {% if sec_name == "backlog" %}draggable="true" data-index="{{ loop.index0 }}"{% endif %}>
     <div class="task-row">
-    <span class="item-text" {% if sec_name == "up next" %}data-raw="{{ item.text }}" ondblclick="startInlineEdit(this, '{{ project.name }}', '{{ sec_name }}')"{% endif %}>{{ item.text | markdown }}</span>
+    <span class="item-text" {% if sec_name == "backlog" %}data-raw="{{ item.text }}" ondblclick="startInlineEdit(this, '{{ project.name }}', '{{ sec_name }}')"{% endif %}>{{ item.text | markdown }}</span>
     <span class="item-actions">
-    {% if sec_name == "up next" %}
+    {% if sec_name == "backlog" %}
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/start" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
       <button class="btn-sm btn-start" title="Start">&#9654;</button>
@@ -33,14 +33,14 @@
     </div>
   </li>
   {% endfor %}
-  {% if sec_name == "up next" %}
+  {% if sec_name == "backlog" %}
   <li class="add-item">
     <span class="add-trigger" onclick="var inp=this.parentElement.querySelector('.add-input input[type=text]'); this.parentElement.querySelector('.add-input').style.display='inline'; this.style.display='none'; setTimeout(function(){inp.focus()}, 50);">+</span>
     <form class="add-input inline-action" style="display:none"
           hx-post="/api/project/{{ project.name }}/task/add"
           hx-target="#all-sections"
           hx-swap="innerHTML">
-      <input type="hidden" name="section" value="up next">
+      <input type="hidden" name="section" value="backlog">
       <input type="text" name="item" placeholder="New item&hellip;" required
              onblur="var el=this; setTimeout(function(){ if(el.value.trim()) el.form.requestSubmit(); else { el.form.style.display='none'; el.closest('.add-item').querySelector('.add-trigger').style.display=''; } }, 150)">
     </form>
@@ -86,7 +86,7 @@ function submitInlineEdit(form, projectName, encodedOldText) {
 
 // Drag and drop reorder
 function initDragAndDrop() {
-  var list = document.getElementById('up-next-list');
+  var list = document.getElementById('backlog-list');
   if (!list) return;
   var dragItem = null;
 
@@ -153,7 +153,7 @@ function saveOrder(list) {
   fetch('/api/project/' + projectName + '/task/reorder-all', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({section: 'up next', order: order})
+    body: JSON.stringify({section: 'backlog', order: order})
   }).then(function(r) { return r.text(); })
     .then(function(html) {
       document.getElementById('all-sections').innerHTML = html;

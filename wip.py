@@ -384,7 +384,7 @@ def create_todo_file(home):
     plans_dir = home / "plans"
     plans_dir.mkdir(parents=True, exist_ok=True)
     path = plans_dir / "TODO.md"
-    path.write_text("# TODO\n\n## In progress\n\n## Up next\n\n## Done\n")
+    path.write_text("# TODO\n\n## In progress\n\n## Backlog\n\n## Done\n")
     return path
 
 
@@ -450,29 +450,29 @@ def get_section_instructions(content):
 # TODO.md commands
 # ---------------------------------------------------------------------------
 
-def ensure_up_next_section(text):
-    """Ensure ## Up next exists before ## Done. Returns updated text and section info."""
-    match = find_section_case_insensitive(text, "up next")
+def ensure_backlog_section(text):
+    """Ensure ## Backlog exists before ## Done. Returns updated text and section info."""
+    match = find_section_case_insensitive(text, "backlog")
     if match:
         return text, match
-    # Create ## Up next before ## Done
+    # Create ## Backlog before ## Done
     done_match = find_section_case_insensitive(text, "done")
     if done_match:
         _, done_start, _ = done_match
-        text = text[:done_start] + "## Up next\n\n" + text[done_start:]
+        text = text[:done_start] + "## Backlog\n\n" + text[done_start:]
     else:
-        text = text.rstrip("\n") + "\n\n## Up next\n\n"
-    match = find_section_case_insensitive(text, "up next")
+        text = text.rstrip("\n") + "\n\n## Backlog\n\n"
+    match = find_section_case_insensitive(text, "backlog")
     return text, match
 
 
 def ensure_in_progress_section(text):
-    """Ensure ## In progress exists before ## Up next. Returns updated text and section info."""
+    """Ensure ## In progress exists before ## Backlog. Returns updated text and section info."""
     match = find_section_case_insensitive(text, "in progress")
     if match:
         return text, match
-    # Create ## In progress before ## Up next (or Done if no Up next)
-    up_next = find_section_case_insensitive(text, "up next")
+    # Create ## In progress before ## Backlog (or Done if no Backlog)
+    up_next = find_section_case_insensitive(text, "backlog")
     if up_next:
         _, insert_start, _ = up_next
     else:
@@ -502,10 +502,10 @@ def cmd_todo_add(args):
             sys.exit(1)
         heading, sec_start, sec_end = match
     else:
-        # Default to ## Up next, creating it if needed
-        text, match = ensure_up_next_section(text)
+        # Default to ## Backlog, creating it if needed
+        text, match = ensure_backlog_section(text)
         if not match:
-            print(json.dumps({"error": f"Could not find or create 'Up next' section in {todo_path}"}))
+            print(json.dumps({"error": f"Could not find or create 'Backlog' section in {todo_path}"}))
             sys.exit(1)
         heading, sec_start, sec_end = match
 
@@ -527,7 +527,7 @@ def cmd_todo_add(args):
 
 
 def cmd_todo_start(args):
-    """Move the first (or matched) item from ## Up next to ## In progress."""
+    """Move the first (or matched) item from ## Backlog to ## In progress."""
     home = args.home
     todo_path = resolve_todo_file(home, args.file)
     if not todo_path:
@@ -536,10 +536,10 @@ def cmd_todo_start(args):
 
     text = todo_path.read_text()
 
-    # Find ## Up next
-    up_next = find_section_case_insensitive(text, "up next")
+    # Find ## Backlog
+    up_next = find_section_case_insensitive(text, "backlog")
     if not up_next:
-        print(json.dumps({"error": "No 'Up next' section found"}))
+        print(json.dumps({"error": "No 'Backlog' section found"}))
         sys.exit(1)
 
     _, up_start, up_end = up_next
@@ -549,20 +549,20 @@ def cmd_todo_start(args):
     unchecked = [(t, raw, s, e) for t, checked, raw, s, e in items if not checked]
 
     if not unchecked:
-        print(json.dumps({"error": "No unchecked items in 'Up next' section"}))
+        print(json.dumps({"error": "No unchecked items in 'Backlog' section"}))
         sys.exit(1)
 
     if args.item:
         search = args.item.strip().lower()
         matched = [(t, raw, s, e) for t, raw, s, e in unchecked if search in t.lower()]
         if not matched:
-            print(json.dumps({"error": f"No unchecked item matching '{args.item}' in 'Up next'"}))
+            print(json.dumps({"error": f"No unchecked item matching '{args.item}' in 'Backlog'"}))
             sys.exit(1)
         item_text, raw, item_start, item_end = matched[0]
     else:
         item_text, raw, item_start, item_end = unchecked[0]
 
-    # Remove from Up next
+    # Remove from Backlog
     abs_start = heading_end + item_start
     abs_end = heading_end + item_end
     text = text[:abs_start] + text[abs_end:]
@@ -619,8 +619,8 @@ def cmd_todo_next(args):
             "instructions": instructions,
         }))
     else:
-        # Check ## Up next for the next item to start
-        up_match = find_section_case_insensitive(text, "up next")
+        # Check ## Backlog for the next item to start
+        up_match = find_section_case_insensitive(text, "backlog")
         if up_match:
             _, up_start, up_end = up_match
             up_heading_end = text.index("\n", up_start) + 1
@@ -630,7 +630,7 @@ def cmd_todo_next(args):
             if up_unchecked:
                 print(json.dumps({
                     "file": str(todo_path),
-                    "section": "Up next",
+                    "section": "Backlog",
                     "item": up_unchecked[0],
                 }))
                 return
