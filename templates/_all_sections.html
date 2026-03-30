@@ -60,11 +60,17 @@
 <script>
 // Copy item text to clipboard
 function copyItemText(btn, text) {
-  navigator.clipboard.writeText(text).then(function() {
-    var orig = btn.innerHTML;
-    btn.innerHTML = '&#10003;';
-    setTimeout(function() { btn.innerHTML = orig; }, 1200);
-  });
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  var orig = btn.innerHTML;
+  btn.innerHTML = '&#10003;';
+  setTimeout(function() { btn.innerHTML = orig; }, 1200);
 }
 
 // Double-click to edit
