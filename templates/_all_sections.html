@@ -1,73 +1,165 @@
 {% for sec_name, sec_label in [("in progress", "In progress"), ("up next", "Up next"), ("done", "Done")] %}
-<section class="task-section" id="section-{{ sec_name | replace(' ', '-') }}">
-  <h2>{{ sec_label }} <small>({{ sections[sec_name] | length }})</small></h2>
+<h2>{{ sec_label }}</h2>
 
-  {% if sec_name == "done" and sections[sec_name] | length > 0 %}
-  <details>
-    <summary>Show completed items</summary>
+{% if sections[sec_name] or sec_name == "up next" %}
+<ul {% if sec_name == "up next" %}id="up-next-list" class="sortable-list"{% endif %}>
+  {% for item in sections[sec_name] %}
+  <li {% if sec_name == "up next" %}draggable="true" data-index="{{ loop.index0 }}"{% endif %}>
+    <span class="item-text" {% if sec_name == "up next" %}ondblclick="startInlineEdit(this, '{{ project.name }}', '{{ sec_name }}')"{% endif %}>{{ item.text | markdown }}</span>
+    {% if sec_name == "up next" %}
+    <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/start" hx-target="#all-sections" hx-swap="innerHTML">
+      <input type="hidden" name="item" value="{{ item.text }}">
+      <button class="btn-sm btn-start" title="Start">&#9654;</button>
+    </form>
+    <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/delete" hx-target="#all-sections" hx-swap="innerHTML">
+      <input type="hidden" name="item" value="{{ item.text }}">
+      <input type="hidden" name="section" value="{{ sec_name }}">
+      <button class="btn-sm btn-delete" title="Delete">&times;</button>
+    </form>
+    {% endif %}
+    {% if sec_name == "in progress" %}
+    <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/done" hx-target="#all-sections" hx-swap="innerHTML">
+      <input type="hidden" name="item" value="{{ item.text }}">
+      <button class="btn-sm btn-done" title="Mark done">&#10003;</button>
+    </form>
+    <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/return" hx-target="#all-sections" hx-swap="innerHTML">
+      <input type="hidden" name="item" value="{{ item.text }}">
+      <button class="btn-sm" title="Return to backlog">&#8617;</button>
+    </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+  {% if sec_name == "up next" %}
+  <li class="add-item">
+    <span class="add-trigger" onclick="var inp=this.parentElement.querySelector('.add-input input[type=text]'); this.parentElement.querySelector('.add-input').style.display='inline'; this.style.display='none'; setTimeout(function(){inp.focus()}, 50);">+</span>
+    <form class="add-input inline-action" style="display:none"
+          hx-post="/api/project/{{ project.name }}/task/add"
+          hx-target="#all-sections"
+          hx-swap="innerHTML">
+      <input type="hidden" name="section" value="up next">
+      <input type="text" name="item" placeholder="New item&hellip;" required
+             onblur="var el=this; setTimeout(function(){ if(el.value.trim()) el.form.requestSubmit(); else { el.form.style.display='none'; el.closest('.add-item').querySelector('.add-trigger').style.display=''; } }, 150)">
+    </form>
+  </li>
   {% endif %}
-
-  <ul class="task-list">
-    {% for item in sections[sec_name] %}
-    <li class="task-item {% if item.checked %}task-done{% endif %}">
-      <div class="task-content">
-        <span class="task-text">{{ item.text }}</span>
-      </div>
-      <div class="task-actions">
-        {% if sec_name == "up next" and not item.checked %}
-        <form hx-post="/api/project/{{ project.name }}/task/start" hx-target="#all-sections" hx-swap="innerHTML">
-          <input type="hidden" name="item" value="{{ item.text }}">
-          <button class="btn-sm btn-start" title="Start">&#9654;</button>
-        </form>
-        {% endif %}
-        {% if sec_name != "done" and not item.checked %}
-        <form hx-post="/api/project/{{ project.name }}/task/done" hx-target="#all-sections" hx-swap="innerHTML">
-          <input type="hidden" name="item" value="{{ item.text }}">
-          <button class="btn-sm btn-done" title="Mark done">&#10003;</button>
-        </form>
-        {% endif %}
-        {% if sec_name != "done" %}
-        <button class="btn-sm btn-edit"
-                hx-get="/api/project/{{ project.name }}/task/edit-form?item={{ item.text | urlencode }}&amp;section={{ sec_name | urlencode }}"
-                hx-target="closest .task-item"
-                hx-swap="innerHTML"
-                title="Edit">&#9998;</button>
-        <form hx-post="/api/project/{{ project.name }}/task/reorder" hx-target="#all-sections" hx-swap="innerHTML">
-          <input type="hidden" name="item" value="{{ item.text }}">
-          <input type="hidden" name="direction" value="up">
-          <input type="hidden" name="section" value="{{ sec_name }}">
-          <button class="btn-sm btn-up" title="Move up">&uarr;</button>
-        </form>
-        <form hx-post="/api/project/{{ project.name }}/task/reorder" hx-target="#all-sections" hx-swap="innerHTML">
-          <input type="hidden" name="item" value="{{ item.text }}">
-          <input type="hidden" name="direction" value="down">
-          <input type="hidden" name="section" value="{{ sec_name }}">
-          <button class="btn-sm btn-down" title="Move down">&darr;</button>
-        </form>
-        {% endif %}
-        <form hx-post="/api/project/{{ project.name }}/task/delete" hx-target="#all-sections" hx-swap="innerHTML" hx-confirm="Delete this item?">
-          <input type="hidden" name="item" value="{{ item.text }}">
-          <input type="hidden" name="section" value="{{ sec_name }}">
-          <button class="btn-sm btn-delete" title="Delete">&times;</button>
-        </form>
-      </div>
-    </li>
-    {% endfor %}
-  </ul>
-
-  {% if sec_name == "done" and sections[sec_name] | length > 0 %}
-  </details>
+</ul>
+{% else %}
+  {% if sec_name == "in progress" %}
+<p class="empty-state">Nothing in progress.</p>
   {% endif %}
+{% endif %}
 
-  {% if sec_name != "done" %}
-  <form class="add-form"
-        hx-post="/api/project/{{ project.name }}/task/add"
-        hx-target="#all-sections"
-        hx-swap="innerHTML">
-    <input type="hidden" name="section" value="{{ sec_name }}">
-    <input type="text" name="item" placeholder="Add item to {{ sec_label }}&hellip;" required>
-    <button type="submit">Add</button>
-  </form>
-  {% endif %}
-</section>
 {% endfor %}
+
+<script>
+// Double-click to edit
+function startInlineEdit(span, projectName, section) {
+  var li = span.closest('li');
+  var oldText = span.textContent.trim();
+  li.innerHTML = '<form class="edit-inline" onsubmit="return submitInlineEdit(this, \'' + projectName + '\', \'' + encodeURIComponent(oldText) + '\')">' +
+    '<textarea rows="2" name="new_text">' + oldText.replace(/</g, '&lt;') + '</textarea>' +
+    '<div class="edit-buttons"><button class="btn-sm" type="submit">Save</button> ' +
+    '<button class="btn-sm btn-cancel" type="button" onclick="location.reload()">Cancel</button></div></form>';
+  var ta = li.querySelector('textarea');
+  setTimeout(function(){ ta.focus(); }, 50);
+}
+
+function submitInlineEdit(form, projectName, encodedOldText) {
+  var newText = form.querySelector('textarea').value.trim();
+  var oldText = decodeURIComponent(encodedOldText);
+  if (!newText || newText === oldText) { location.reload(); return false; }
+  fetch('/api/project/' + projectName + '/task/edit', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'item=' + encodeURIComponent(oldText) + '&new_text=' + encodeURIComponent(newText)
+  }).then(function(r) { return r.text(); })
+    .then(function(html) {
+      document.getElementById('all-sections').innerHTML = html;
+      initDragAndDrop();
+    });
+  return false;
+}
+
+// Drag and drop reorder
+function initDragAndDrop() {
+  var list = document.getElementById('up-next-list');
+  if (!list) return;
+  var dragItem = null;
+
+  list.querySelectorAll('li[draggable]').forEach(function(li) {
+    li.addEventListener('dragstart', function(e) {
+      dragItem = li;
+      li.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    li.addEventListener('dragend', function() {
+      li.classList.remove('dragging');
+      dragItem = null;
+      list.querySelectorAll('li').forEach(function(el) { el.classList.remove('drag-over'); });
+      saveOrder(list);
+    });
+    li.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (li !== dragItem && li.hasAttribute('draggable')) {
+        li.classList.add('drag-over');
+      }
+    });
+    li.addEventListener('dragleave', function() {
+      li.classList.remove('drag-over');
+    });
+    li.addEventListener('drop', function(e) {
+      e.preventDefault();
+      li.classList.remove('drag-over');
+      if (dragItem && dragItem !== li && li.hasAttribute('draggable')) {
+        // Insert dragItem before or after li based on position
+        var items = Array.from(list.querySelectorAll('li[draggable]'));
+        var dragIdx = items.indexOf(dragItem);
+        var dropIdx = items.indexOf(li);
+        if (dragIdx < dropIdx) {
+          li.after(dragItem);
+        } else {
+          li.before(dragItem);
+        }
+      }
+    });
+  });
+}
+
+function saveOrder(list) {
+  var items = Array.from(list.querySelectorAll('li[draggable]'));
+  var order = items.map(function(li) { return parseInt(li.getAttribute('data-index')); });
+  // Check if order actually changed
+  var changed = false;
+  for (var i = 0; i < order.length; i++) { if (order[i] !== i) { changed = true; break; } }
+  if (!changed) return;
+
+  var projectName = list.closest('[id="all-sections"]')
+    ? window.location.pathname.split('/').pop()
+    : '';
+  if (!projectName) {
+    // Extract from any form in the list
+    var form = list.querySelector('form[hx-post]');
+    if (form) {
+      var m = form.getAttribute('hx-post').match(/\/api\/project\/([^/]+)\//);
+      if (m) projectName = m[1];
+    }
+  }
+
+  fetch('/api/project/' + projectName + '/task/reorder-all', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({section: 'up next', order: order})
+  }).then(function(r) { return r.text(); })
+    .then(function(html) {
+      document.getElementById('all-sections').innerHTML = html;
+      initDragAndDrop();
+    });
+}
+
+// Init on page load and after HTMX swaps
+document.addEventListener('DOMContentLoaded', initDragAndDrop);
+document.addEventListener('htmx:afterSwap', function(e) {
+  if (e.detail.target.id === 'all-sections') initDragAndDrop();
+});
+</script>

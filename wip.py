@@ -401,16 +401,23 @@ def find_section_case_insensitive(text, name):
 
 
 def parse_todo_items(content):
-    """Parse checkbox items from TODO section content.
-    Returns list of (checkbox_text, is_checked, raw_lines, start_offset, end_offset).
-    checkbox_text has the '[ ] ' or '[x] ' prefix stripped."""
+    """Parse bullet items from TODO section content.
+    Supports both plain '- text' and checkbox '- [ ] text' / '- [x] text' formats.
+    Returns list of (item_text, is_checked, raw_lines, start_offset, end_offset)."""
     items = []
     lines = content.splitlines(keepends=True)
     i = 0
     while i < len(lines):
-        m = re.match(r"^- \[([ x])\] (.*)$", lines[i].rstrip("\n"))
-        if m:
-            is_checked = m.group(1) == "x"
+        # Try checkbox format first, then plain bullet
+        m_checkbox = re.match(r"^- \[([ x])\] (.*)$", lines[i].rstrip("\n"))
+        m_plain = re.match(r"^- (.+)$", lines[i].rstrip("\n")) if not m_checkbox else None
+        if m_checkbox or m_plain:
+            if m_checkbox:
+                is_checked = m_checkbox.group(1) == "x"
+                first_line = m_checkbox.group(2)
+            else:
+                is_checked = False
+                first_line = m_plain.group(1)
             item_start = sum(len(l) for l in lines[:i])
             item_lines = [lines[i]]
             j = i + 1
@@ -418,12 +425,10 @@ def parse_todo_items(content):
                 item_lines.append(lines[j])
                 j += 1
             raw = "".join(item_lines)
-            # Build the text without the checkbox prefix
-            first_line = m.group(2)
             cont_lines = item_lines[1:]
-            checkbox_text = first_line + "".join(cont_lines).rstrip("\n")
+            item_text = first_line + "".join(cont_lines).rstrip("\n")
             item_end = sum(len(l) for l in lines[:j])
-            items.append((checkbox_text, is_checked, raw, item_start, item_end))
+            items.append((item_text, is_checked, raw, item_start, item_end))
             i = j
         else:
             i += 1

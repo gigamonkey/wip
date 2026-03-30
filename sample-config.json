@@ -19,6 +19,11 @@
       "name": "grading",
       "description": "Grading tools",
       "home": "~/claude/grading"
+    },
+    {
+      "name": "wip-server",
+      "description": "WIP management server",
+      "home": "~/hacks/wip-server"
     }
   ],
   "port": 5555

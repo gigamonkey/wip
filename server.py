@@ -8,10 +8,23 @@ import sys
 from pathlib import Path
 
 from flask import Flask, render_template, request, abort, redirect, url_for
+from markupsafe import Markup
+import markdown as md
 
 import wip
 
 app = Flask(__name__)
+
+
+@app.template_filter("markdown")
+def markdown_filter(text):
+    """Render inline markdown (no wrapping <p> tag for single-line content)."""
+    html = md.markdown(text, extensions=["fenced_code"])
+    # Strip wrapping <p>...</p> if it's a single paragraph
+    html = html.strip()
+    if html.startswith("<p>") and html.endswith("</p>") and html.count("<p>") == 1:
+        html = html[3:-4]
+    return Markup(html)
 
 # Populated at startup from config file
 PROJECTS = []
@@ -106,10 +119,12 @@ def dashboard():
             items_un = [i for i in get_section_items(text, "up next") if not i["checked"]]
         for item in items_ip:
             in_progress.append({"project": project["name"], **item})
+        total = len(items_un)
         backlog_by_project.append({
             "name": project["name"],
             "description": project["description"],
             "tasks": items_un[:3],
+            "more": total - min(total, 3),
         })
     return render_template("dashboard.html", in_progress=in_progress, backlog_by_project=backlog_by_project)
 
@@ -216,7 +231,7 @@ def task_add(name):
 
     heading, sec_start, sec_end = match
     insert_pos = sec_end
-    bullet = f"- [ ] {item}\n\n"
+    bullet = f"- {item}\n\n"
     text = text[:insert_pos].rstrip("\n") + "\n\n" + bullet + text[insert_pos:].lstrip("\n")
     text = re.sub(r"\n{3,}", "\n\n", text)
     text = wip.ensure_trailing_newline(text)
@@ -243,22 +258,72 @@ def task_done(name):
 
     src_heading, heading_end, matched_text, raw, item_start, item_end = found
 
-    # Build done version
-    done_raw = raw.replace("- [ ] ", "- [x] ", 1)
-
     # Remove from source
     abs_start = heading_end + item_start
     abs_end = heading_end + item_end
     text = text[:abs_start] + text[abs_end:]
 
-    # Append to Done section
+    # Append to Done section (raw is used as-is, no checkbox transformation)
     done_sec = wip.get_section_content(text, "Done")
     if not done_sec:
         text = text.rstrip("\n") + "\n\n## Done\n\n"
         done_sec = wip.get_section_content(text, "Done")
 
     done_heading_end, done_end, _ = done_sec
-    text = text[:done_end].rstrip("\n") + "\n\n" + done_raw.rstrip("\n") + "\n\n" + text[done_end:].lstrip("\n")
+    text = text[:done_end].rstrip("\n") + "\n\n" + raw.rstrip("\n") + "\n\n" + text[done_end:].lstrip("\n")
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = wip.ensure_trailing_newline(text)
+    todo_path.write_text(text)
+
+    return _render_after_mutation(project)
+
+
+@app.route("/api/project/<name>/task/return", methods=["POST"])
+def task_return(name):
+    """Move an item from In progress back to the top of Up next."""
+    project = get_project(name)
+    item_text = request.form.get("item", "").strip()
+    if not item_text:
+        return "Item text required", 400
+
+    todo_path = wip.resolve_todo_file(project["home"])
+    if not todo_path:
+        return "No TODO.md found", 404
+
+    text = todo_path.read_text()
+
+    # Find in In progress
+    match = wip.find_section_case_insensitive(text, "in progress")
+    if not match:
+        return "No 'In progress' section", 404
+
+    heading, sec_start, sec_end = match
+    heading_end = text.index("\n", sec_start) + 1
+    content = text[heading_end:sec_end]
+    items = wip.parse_todo_items(content)
+
+    found = None
+    for t, checked, raw, s, e in items:
+        if item_text.lower() in t.lower():
+            found = (t, raw, s, e)
+            break
+
+    if not found:
+        return f"Item not found in In progress: {item_text}", 404
+
+    item_t, raw, item_start, item_end = found
+
+    # Remove from In progress
+    abs_start = heading_end + item_start
+    abs_end = heading_end + item_end
+    text = text[:abs_start] + text[abs_end:]
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    # Add to top of Up next
+    text, un_match = wip.ensure_up_next_section(text)
+    _, un_start, un_end = un_match
+    un_heading_end = text.index("\n", un_start) + 1
+    text = text[:un_heading_end] + "\n" + raw.rstrip("\n") + "\n\n" + text[un_heading_end:].lstrip("\n")
     text = re.sub(r"\n{3,}", "\n\n", text)
     text = wip.ensure_trailing_newline(text)
     todo_path.write_text(text)
@@ -291,7 +356,7 @@ def task_start(name):
 
     found = None
     for t, checked, raw, s, e in items:
-        if not checked and item_text.lower() in t.lower():
+        if item_text.lower() in t.lower():
             found = (t, raw, s, e)
             break
 
@@ -336,10 +401,7 @@ def task_edit(name):
 
     src_heading, heading_end, matched_text, raw, item_start, item_end = found
 
-    # Replace the item text, preserving checkbox state
-    is_checked = "[x]" in raw[:6]
-    prefix = "- [x] " if is_checked else "- [ ] "
-    new_raw = prefix + new_text + "\n"
+    new_raw = "- " + new_text + "\n"
 
     abs_start = heading_end + item_start
     abs_end = heading_end + item_end
@@ -429,14 +491,59 @@ def task_reorder(name):
     # Rebuild section content: keep any non-item text before items, then items
     first_item_start = items[0][3] if items else len(content)
     preamble = content[:first_item_start]
-    new_content = preamble + "".join(r if r.endswith("\n") else r + "\n" for r in raw_items)
+    new_content = preamble + "\n\n".join(r.rstrip("\n") for r in raw_items) + "\n"
 
-    text = text[:heading_end] + new_content + text[sec_end:]
+    text = text[:heading_end] + new_content + "\n" + text[sec_end:].lstrip("\n")
     text = re.sub(r"\n{3,}", "\n\n", text)
     text = wip.ensure_trailing_newline(text)
     todo_path.write_text(text)
 
     return _render_after_mutation(project)
+
+
+@app.route("/api/project/<name>/task/reorder-all", methods=["POST"])
+def task_reorder_all(name):
+    """Reorder all items in a section. Accepts JSON body with {section, order} where
+    order is a list of 0-based indices representing the new order."""
+    project = get_project(name)
+    data = request.get_json()
+    if not data:
+        return "JSON body required", 400
+    section = data.get("section", "").strip()
+    order = data.get("order", [])
+    if not section or not order:
+        return "section and order required", 400
+
+    todo_path = wip.resolve_todo_file(project["home"])
+    if not todo_path:
+        return "No TODO.md found", 404
+
+    text = todo_path.read_text()
+    match = wip.find_section_case_insensitive(text, section)
+    if not match:
+        return f"Section '{section}' not found", 404
+
+    heading, sec_start, sec_end = match
+    heading_end = text.index("\n", sec_start) + 1
+    content = text[heading_end:sec_end]
+    items = wip.parse_todo_items(content)
+
+    raw_items = [raw for _, _, raw, _, _ in items]
+    if sorted(order) != list(range(len(raw_items))):
+        return "Invalid order", 400
+
+    reordered = [raw_items[i] for i in order]
+
+    first_item_start = items[0][3] if items else len(content)
+    preamble = content[:first_item_start]
+    new_content = preamble + "\n\n".join(r.rstrip("\n") for r in reordered) + "\n"
+
+    text = text[:heading_end] + new_content + "\n" + text[sec_end:].lstrip("\n")
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = wip.ensure_trailing_newline(text)
+    todo_path.write_text(text)
+
+    return _render_project_sections(project)
 
 
 @app.route("/api/project/<name>/task/edit-form", methods=["GET"])
