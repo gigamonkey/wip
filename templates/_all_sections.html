@@ -9,7 +9,7 @@
     <span class="item-text" {% if sec_name == "backlog" %}data-raw="{{ item.text }}" ondblclick="startInlineEdit(this, '{{ project.name }}', '{{ sec_name }}')"{% endif %}>{{ item.text | markdown }}</span>
     <span class="item-actions">
     {% if sec_name == "backlog" %}
-    <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/start" hx-target="#all-sections" hx-swap="innerHTML">
+    <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/start" hx-target="#all-sections" hx-swap="innerHTML" data-copy="{{ item.text | e }}" hx-on::after-request="copyTextToClipboard(this.dataset.copy)">
       <input type="hidden" name="item" value="{{ item.text }}">
       <button class="btn-sm btn-start" title="Start">&#9654;</button>
     </form>
@@ -58,13 +58,24 @@
 {% endfor %}
 
 <script>
-// Copy item text to clipboard
+// Copy text to clipboard, replacing newlines + surrounding whitespace with a space
+function copyTextToClipboard(text) {
+  var cleaned = text.replace(/[ \t]*\n[ \t]*/g, ' ').trim();
+  var ta = document.createElement('textarea');
+  ta.value = cleaned;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+
 function copyItemText(btn) {
-  navigator.clipboard.writeText(btn.dataset.text).then(function() {
-    var orig = btn.innerHTML;
-    btn.innerHTML = '&#10003;';
-    setTimeout(function() { btn.innerHTML = orig; }, 1200);
-  });
+  copyTextToClipboard(btn.dataset.text);
+  var orig = btn.innerHTML;
+  btn.innerHTML = '&#10003;';
+  setTimeout(function() { btn.innerHTML = orig; }, 1200);
 }
 
 // Double-click to edit
