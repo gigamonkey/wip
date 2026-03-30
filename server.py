@@ -39,7 +39,6 @@ def load_config(path):
     for p in config["projects"]:
         projects.append({
             "name": p["name"],
-            "description": p.get("description", ""),
             "home": os.path.expanduser(p["home"]),
         })
     return projects, config.get("port", 5555)
@@ -59,6 +58,23 @@ def read_todo(project):
     if not todo_path:
         return None, None
     return todo_path.read_text(), todo_path
+
+
+def read_todo_description(text):
+    """Extract description from between the first # heading and first ## heading."""
+    if not text:
+        return ""
+    desc_lines = []
+    in_body = False
+    for line in text.splitlines():
+        if not in_body:
+            if line.startswith("# "):
+                in_body = True
+            continue
+        if line.startswith("## "):
+            break
+        desc_lines.append(line)
+    return "\n".join(desc_lines).strip()
 
 
 def get_section_items(text, section_name):
@@ -85,7 +101,7 @@ def project_summary(project):
     text, todo_path = read_todo(project)
     summary = {
         "name": project["name"],
-        "description": project["description"],
+        "description": read_todo_description(text),
         "has_todo": text is not None,
         "in_progress": [],
         "up_next": [],
@@ -122,7 +138,6 @@ def dashboard():
         total = len(items_un)
         backlog_by_project.append({
             "name": project["name"],
-            "description": project["description"],
             "tasks": items_un[:3],
             "more": total - min(total, 3),
             "ip_count": len(items_ip),
@@ -143,7 +158,8 @@ def project_detail(name):
     else:
         for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = []
-    return render_template("project.html", project=project, sections=sections)
+    description = read_todo_description(text)
+    return render_template("project.html", project=project, description=description, sections=sections)
 
 
 # ---------------------------------------------------------------------------
@@ -153,7 +169,6 @@ def project_detail(name):
 @app.route("/api/project/add", methods=["POST"])
 def project_add():
     home = request.form.get("home", "").strip()
-    description = request.form.get("description", "").strip()
     if not home:
         return "Directory is required", 400
 
@@ -170,14 +185,14 @@ def project_add():
             return f"Project '{name}' already exists", 400
 
     # Add to in-memory list
-    project = {"name": name, "description": description, "home": expanded}
+    project = {"name": name, "home": expanded}
     PROJECTS.append(project)
 
     # Persist to config file
     config_path = app.config["CONFIG_PATH"]
     with open(config_path) as f:
         config = json.load(f)
-    config["projects"].append({"name": name, "description": description, "home": home})
+    config["projects"].append({"name": name, "home": home})
     with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
         f.write("\n")
