@@ -5,7 +5,9 @@
 <ul {% if sec_name == "up next" %}id="up-next-list" class="sortable-list"{% endif %}>
   {% for item in sections[sec_name] %}
   <li {% if sec_name == "up next" %}draggable="true" data-index="{{ loop.index0 }}"{% endif %}>
+    <div class="task-row">
     <span class="item-text" {% if sec_name == "up next" %}data-raw="{{ item.text }}" ondblclick="startInlineEdit(this, '{{ project.name }}', '{{ sec_name }}')"{% endif %}>{{ item.text | markdown }}</span>
+    <span class="item-actions">
     {% if sec_name == "up next" %}
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/start" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
@@ -27,6 +29,8 @@
       <button class="btn-sm" title="Return to backlog">&#8617;</button>
     </form>
     {% endif %}
+    </span>
+    </div>
   </li>
   {% endfor %}
   {% if sec_name == "up next" %}

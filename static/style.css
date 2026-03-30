@@ -133,21 +133,22 @@
 /* Small action buttons — override Pico's button styling */
 button.btn-sm,
 button.btn-sm[type="submit"] {
-  padding: 0.2rem 0.4rem;
-  font-size: 0.85rem;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.75rem;
   line-height: 1;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #f5f5f5;
-  color: #373c44;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background: transparent;
+  color: #999;
   cursor: pointer;
-  min-width: 1.8rem;
+  min-width: 1.4rem;
   text-align: center;
   width: auto;
 }
 
 button.btn-sm:hover {
-  background: #e0e0e0;
+  color: #555;
+  border-color: #bbb;
 }
 
 .btn-done:hover { color: green; }
@@ -214,9 +215,38 @@ button.btn-sm:hover {
   border-top: 2px solid var(--pico-primary);
 }
 
-/* Item text for double-click edit */
-.item-text {
+/* Task row: flex layout inside native bulleted li */
+.task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  line-height: 1.2;
+}
+
+.task-row .item-text {
+  flex: 1;
+}
+
+.item-text code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+ul li {
+  margin-bottom: 1.25rem;
+}
+
+.task-row .item-text {
+  flex: 1;
   cursor: default;
+}
+
+.item-actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  align-items: flex-start;
 }
 
 /* Inline add item in list */
