@@ -24,7 +24,16 @@
 <p class="empty-state">Nothing in progress.</p>
 {% endif %}
 
-<h1>Projects <label class="show-all-label"><input type="checkbox" id="show-all" onchange="document.getElementById('project-grid').classList.toggle('show-empty', this.checked)"> Show all</label></h1>
+<h1>Projects
+  <label class="show-all-label"><input type="checkbox" id="show-all" onchange="document.getElementById('project-grid').classList.toggle('show-empty', this.checked)"> Show all</label>
+  <span class="add-trigger" title="Add project" onclick="document.getElementById('add-project-input').style.display='inline-flex'; this.style.display='none'; setTimeout(function(){ document.getElementById('add-project-home').focus(); }, 50);">+</span>
+  <form id="add-project-input" style="display:none" method="post" action="/api/project/add" class="add-project-inline">
+    <input id="add-project-home" type="text" name="home" placeholder="~/hacks/my-project" required
+           onkeydown="if(event.key==='Escape'){ this.form.style.display='none'; this.form.previousElementSibling.style.display=''; this.value=''; }"
+           onblur="var el=this; setTimeout(function(){ if(!el.value.trim()){ el.form.style.display='none'; el.form.previousElementSibling.style.display=''; } }, 150)">
+    <button type="submit">Add</button>
+  </form>
+</h1>
 <div class="grid-cards" id="project-grid">
   {% for proj in backlog_by_project %}
   <a href="/project/{{ proj.name }}" class="project-tile{% if not proj.ip_count and not proj.total %} project-tile-empty{% endif %}">
@@ -38,11 +47,5 @@
   </a>
   {% endfor %}
 </div>
-
-<h2>Add project</h2>
-<form class="add-project-form" method="post" action="/api/project/add">
-  <input type="text" name="home" placeholder="Directory (e.g. ~/hacks/my-project)" required>
-  <button type="submit">Add</button>
-</form>
 
 {% endblock %}

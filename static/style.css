@@ -272,6 +272,32 @@ ul li {
   max-width: 80vw;
 }
 
+/* Inline add project form in h1 */
+.add-project-inline {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.add-project-inline input[type="text"] {
+  font-size: 0.9rem;
+  font-weight: normal;
+  padding: 0.15rem 0.4rem;
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 18em;
+}
+
+.add-project-inline button {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.5rem;
+  margin: 0;
+  white-space: nowrap;
+}
+
 /* Project tiles on dashboard */
 a.project-tile {
   text-decoration: none;
