@@ -285,7 +285,7 @@ def task_done(name):
     # Prepend ISO-8601 timestamp to the raw item text
     timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     if raw.startswith("- "):
-        raw = f"- {timestamp} {raw[2:]}"
+        raw = f"- {raw[2:].rstrip()} ({timestamp})\n"
 
     # Append to Done section
     done_sec = wip.get_section_content(text, "Done")
