@@ -286,6 +286,31 @@ a.project-tile:hover article {
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
+.project-tile-empty {
+  display: none;
+}
+
+#project-grid.show-empty .project-tile-empty {
+  display: block;
+}
+
+.show-all-label {
+  display: inline;
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--pico-muted-color);
+  vertical-align: middle;
+  margin-left: 0.75rem;
+  cursor: pointer;
+}
+
+.show-all-label input {
+  display: inline;
+  width: auto;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+}
+
 /* Add project form */
 .add-project-form {
   display: flex;

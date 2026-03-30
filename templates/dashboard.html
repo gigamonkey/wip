@@ -24,10 +24,10 @@
 <p class="empty-state">Nothing in progress.</p>
 {% endif %}
 
-<h1>Projects</h1>
-<div class="grid-cards">
+<h1>Projects <label class="show-all-label"><input type="checkbox" id="show-all" onchange="document.getElementById('project-grid').classList.toggle('show-empty', this.checked)"> Show all</label></h1>
+<div class="grid-cards" id="project-grid">
   {% for proj in backlog_by_project %}
-  <a href="/project/{{ proj.name }}" class="project-tile">
+  <a href="/project/{{ proj.name }}" class="project-tile{% if not proj.ip_count and not proj.total %} project-tile-empty{% endif %}">
     <article>
       <strong>{{ proj.name }}</strong>
       <div class="card-counts">
