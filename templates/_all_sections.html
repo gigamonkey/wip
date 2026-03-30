@@ -115,7 +115,8 @@ function submitInlineEdit(form, projectName, encodedOldText) {
 // Drag and drop reorder
 function initDragAndDrop() {
   var list = document.getElementById('backlog-list');
-  if (!list) return;
+  if (!list || list.dataset.dragInit) return;
+  list.dataset.dragInit = '1';
   var dragItem = null;
 
   list.querySelectorAll('li[draggable]').forEach(function(li) {
