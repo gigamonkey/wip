@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wip-server",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "python", "server.py", "sample-config.json"],
+      "port": 5555
+    }
+  ]
+}

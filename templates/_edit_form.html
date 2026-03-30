@@ -1,0 +1,14 @@
+<form class="edit-inline"
+      hx-post="/api/project/{{ project.name }}/task/edit"
+      hx-target="#all-sections"
+      hx-swap="innerHTML">
+  <input type="hidden" name="item" value="{{ item }}">
+  <textarea name="new_text" rows="2">{{ item }}</textarea>
+  <div class="edit-buttons">
+    <button type="submit" class="btn-sm">Save</button>
+    <button type="button" class="btn-sm btn-cancel"
+            hx-get="/api/project/{{ project.name }}/sections"
+            hx-target="#all-sections"
+            hx-swap="innerHTML">Cancel</button>
+  </div>
+</form>

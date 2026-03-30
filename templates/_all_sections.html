@@ -1,0 +1,73 @@
+{% for sec_name, sec_label in [("in progress", "In progress"), ("up next", "Up next"), ("done", "Done")] %}
+<section class="task-section" id="section-{{ sec_name | replace(' ', '-') }}">
+  <h2>{{ sec_label }} <small>({{ sections[sec_name] | length }})</small></h2>
+
+  {% if sec_name == "done" and sections[sec_name] | length > 0 %}
+  <details>
+    <summary>Show completed items</summary>
+  {% endif %}
+
+  <ul class="task-list">
+    {% for item in sections[sec_name] %}
+    <li class="task-item {% if item.checked %}task-done{% endif %}">
+      <div class="task-content">
+        <span class="task-text">{{ item.text }}</span>
+      </div>
+      <div class="task-actions">
+        {% if sec_name == "up next" and not item.checked %}
+        <form hx-post="/api/project/{{ project.name }}/task/start" hx-target="#all-sections" hx-swap="innerHTML">
+          <input type="hidden" name="item" value="{{ item.text }}">
+          <button class="btn-sm btn-start" title="Start">&#9654;</button>
+        </form>
+        {% endif %}
+        {% if sec_name != "done" and not item.checked %}
+        <form hx-post="/api/project/{{ project.name }}/task/done" hx-target="#all-sections" hx-swap="innerHTML">
+          <input type="hidden" name="item" value="{{ item.text }}">
+          <button class="btn-sm btn-done" title="Mark done">&#10003;</button>
+        </form>
+        {% endif %}
+        {% if sec_name != "done" %}
+        <button class="btn-sm btn-edit"
+                hx-get="/api/project/{{ project.name }}/task/edit-form?item={{ item.text | urlencode }}&amp;section={{ sec_name | urlencode }}"
+                hx-target="closest .task-item"
+                hx-swap="innerHTML"
+                title="Edit">&#9998;</button>
+        <form hx-post="/api/project/{{ project.name }}/task/reorder" hx-target="#all-sections" hx-swap="innerHTML">
+          <input type="hidden" name="item" value="{{ item.text }}">
+          <input type="hidden" name="direction" value="up">
+          <input type="hidden" name="section" value="{{ sec_name }}">
+          <button class="btn-sm btn-up" title="Move up">&uarr;</button>
+        </form>
+        <form hx-post="/api/project/{{ project.name }}/task/reorder" hx-target="#all-sections" hx-swap="innerHTML">
+          <input type="hidden" name="item" value="{{ item.text }}">
+          <input type="hidden" name="direction" value="down">
+          <input type="hidden" name="section" value="{{ sec_name }}">
+          <button class="btn-sm btn-down" title="Move down">&darr;</button>
+        </form>
+        {% endif %}
+        <form hx-post="/api/project/{{ project.name }}/task/delete" hx-target="#all-sections" hx-swap="innerHTML" hx-confirm="Delete this item?">
+          <input type="hidden" name="item" value="{{ item.text }}">
+          <input type="hidden" name="section" value="{{ sec_name }}">
+          <button class="btn-sm btn-delete" title="Delete">&times;</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  {% if sec_name == "done" and sections[sec_name] | length > 0 %}
+  </details>
+  {% endif %}
+
+  {% if sec_name != "done" %}
+  <form class="add-form"
+        hx-post="/api/project/{{ project.name }}/task/add"
+        hx-target="#all-sections"
+        hx-swap="innerHTML">
+    <input type="hidden" name="section" value="{{ sec_name }}">
+    <input type="text" name="item" placeholder="Add item to {{ sec_label }}&hellip;" required>
+    <button type="submit">Add</button>
+  </form>
+  {% endif %}
+</section>
+{% endfor %}

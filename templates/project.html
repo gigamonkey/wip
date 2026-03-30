@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %}WIP - {{ project.name }}{% endblock %}
+{% block content %}
+<h1>{{ project.name }}</h1>
+<p>{{ project.description }}</p>
+
+<div id="all-sections">
+  {% include "_all_sections.html" %}
+</div>
+{% endblock %}

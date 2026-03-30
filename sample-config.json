@@ -1,0 +1,25 @@
+{
+  "projects": [
+    {
+      "name": "bhs-cs",
+      "description": "Website and infrastructure for BHS CS courses",
+      "home": "~/hacks/bhs-cs"
+    },
+    {
+      "name": "bells",
+      "description": "BHS bell schedule web site and library",
+      "home": "~/hacks/bells"
+    },
+    {
+      "name": "hug",
+      "description": "Bash CLI wrapping clasp for Apps Script",
+      "home": "~/hacks/hug"
+    },
+    {
+      "name": "grading",
+      "description": "Grading tools",
+      "home": "~/claude/grading"
+    }
+  ],
+  "port": 5555
+}

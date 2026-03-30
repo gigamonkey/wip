@@ -1,0 +1,26 @@
+<article>
+  <header>
+    <a href="/project/{{ p.name }}"><strong>{{ p.name }}</strong></a>
+    <small>{{ p.description }}</small>
+  </header>
+  {% if not p.has_todo %}
+  <p><em>No TODO.md found</em></p>
+  {% else %}
+  <div class="card-counts">
+    <span class="badge badge-progress">{{ p.in_progress_count }} in progress</span>
+    <span class="badge badge-next">{{ p.up_next_count }} up next</span>
+  </div>
+  {% if p.in_progress %}
+  <ul class="task-preview">
+    {% for item in p.in_progress %}
+    <li>{{ item.text[:80] }}{% if item.text|length > 80 %}&hellip;{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if p.up_next %}
+  <div class="next-up">
+    <small>Next:</small> {{ p.up_next[0].text[:60] }}{% if p.up_next[0].text|length > 60 %}&hellip;{% endif %}
+  </div>
+  {% endif %}
+  {% endif %}
+</article>

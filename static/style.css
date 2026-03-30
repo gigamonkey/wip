@@ -1,0 +1,203 @@
+/* Card grid on dashboard */
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.grid-cards article {
+  margin: 0;
+}
+
+.grid-cards article header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Badges */
+.card-counts {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.badge {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 1rem;
+}
+
+.badge-progress {
+  background: var(--pico-primary-background);
+  color: var(--pico-primary-inverse);
+}
+
+.badge-next {
+  background: var(--pico-secondary-background);
+  color: var(--pico-secondary-inverse);
+}
+
+/* Task preview in cards */
+.task-preview {
+  margin: 0.5rem 0;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+}
+
+.next-up {
+  font-size: 0.85rem;
+  color: var(--pico-muted-color);
+}
+
+/* Task sections on project page */
+.task-section {
+  margin-bottom: 2rem;
+}
+
+.task-section h2 small {
+  font-weight: normal;
+  color: var(--pico-muted-color);
+}
+
+/* Task list */
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  gap: 0.5rem;
+}
+
+.task-item:hover {
+  background: var(--pico-card-background-color);
+}
+
+.task-done .task-text {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.task-content {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.project-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  background: var(--pico-secondary-background);
+  color: var(--pico-secondary-inverse);
+  text-decoration: none;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.empty-state {
+  color: var(--pico-muted-color);
+  font-style: italic;
+}
+
+.task-actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  align-items: flex-start;
+}
+
+.task-actions form {
+  margin: 0;
+  padding: 0;
+  display: inline;
+}
+
+/* Small action buttons */
+.btn-sm {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.85rem;
+  line-height: 1;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  min-width: 1.8rem;
+  text-align: center;
+}
+
+.btn-sm:hover {
+  background: var(--pico-secondary-background);
+}
+
+.btn-done:hover { color: green; }
+.btn-start:hover { color: var(--pico-primary); }
+.btn-delete:hover { color: red; }
+
+/* Add form */
+.add-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.add-form input[type="text"] {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.add-form button {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+/* Inline edit */
+.edit-inline {
+  width: 100%;
+}
+
+.edit-inline textarea {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-cancel {
+  color: var(--pico-muted-color);
+}
+
+/* Inline action button in regular lists */
+.inline-action {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+/* Add project form */
+.add-project-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.add-project-form input[type="text"] {
+  margin-bottom: 0;
+}
+
+.add-project-form button {
+  margin-bottom: 0;
+  white-space: nowrap;
+}

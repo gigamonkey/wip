@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}WIP - Dashboard{% endblock %}
+{% block content %}
+
+<h1>In progress</h1>
+{% if in_progress %}
+<ul>
+  {% for item in in_progress %}
+  <li>
+    <strong><a href="/project/{{ item.project }}">{{ item.project }}</a></strong> &ndash; {{ item.text }}
+    <form class="inline-action" hx-post="/api/project/{{ item.project }}/task/done" hx-target="body" hx-swap="innerHTML" hx-push-url="/">
+      <input type="hidden" name="item" value="{{ item.text }}">
+      <input type="hidden" name="redirect" value="/">
+      <button class="btn-sm btn-done" title="Mark done">&#10003;</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty-state">Nothing in progress.</p>
+{% endif %}
+
+<h1>Backlog</h1>
+{% for proj in backlog_by_project %}
+<h2><a href="/project/{{ proj.name }}">{{ proj.name }}</a></h2>
+{% if proj.tasks %}
+<ul>
+  {% for item in proj.tasks %}
+  <li>
+    {{ item.text }}
+    <form class="inline-action" hx-post="/api/project/{{ proj.name }}/task/start" hx-target="body" hx-swap="innerHTML" hx-push-url="/">
+      <input type="hidden" name="item" value="{{ item.text }}">
+      <input type="hidden" name="redirect" value="/">
+      <button class="btn-sm btn-start" title="Start">&#9654;</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty-state">Empty backlog.</p>
+{% endif %}
+{% endfor %}
+
+<h2>Add project</h2>
+<form class="add-project-form" method="post" action="/api/project/add">
+  <input type="text" name="home" placeholder="Directory (e.g. ~/hacks/my-project)" required>
+  <input type="text" name="description" placeholder="Description">
+  <button type="submit">Add</button>
+</form>
+
+{% endblock %}
