@@ -24,33 +24,20 @@
 <p class="empty-state">Nothing in progress.</p>
 {% endif %}
 
-<h1>Backlog</h1>
-{% for proj in backlog_by_project %}
-<h2><a href="/project/{{ proj.name }}">{{ proj.name }}</a></h2>
-{% if proj.tasks %}
-<ul>
-  {% for item in proj.tasks %}
-  <li>
-    <div class="task-row">
-    <span class="item-text">{{ item.text | markdown }}</span>
-    <span class="item-actions">
-    <form class="inline-action" hx-post="/api/project/{{ proj.name }}/task/start" hx-target="body" hx-swap="innerHTML" hx-push-url="/">
-      <input type="hidden" name="item" value="{{ item.text }}">
-      <input type="hidden" name="redirect" value="/">
-      <button class="btn-sm btn-start" title="Start">&#9654;</button>
-    </form>
-    </span>
-    </div>
-  </li>
+<h1>Projects</h1>
+<div class="grid-cards">
+  {% for proj in backlog_by_project %}
+  <a href="/project/{{ proj.name }}" class="project-tile">
+    <article>
+      <strong>{{ proj.name }}</strong>
+      <div class="card-counts">
+        {% if proj.ip_count %}<span class="badge badge-progress">{{ proj.ip_count }} in progress</span>{% endif %}
+        {% if proj.total %}<span class="badge badge-next">{{ proj.total }} backlog</span>{% endif %}
+      </div>
+    </article>
+  </a>
   {% endfor %}
-</ul>
-{% if proj.more > 0 %}
-<p class="empty-state"><a href="/project/{{ proj.name }}">+{{ proj.more }} more</a></p>
-{% endif %}
-{% else %}
-<p class="empty-state">Empty backlog.</p>
-{% endif %}
-{% endfor %}
+</div>
 
 <h2>Add project</h2>
 <form class="add-project-form" method="post" action="/api/project/add">

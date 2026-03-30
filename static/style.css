@@ -234,7 +234,7 @@ button.btn-sm:hover {
 }
 
 ul li {
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .task-row .item-text {
@@ -269,6 +269,21 @@ ul li {
   font-size: inherit;
   width: 30em;
   max-width: 80vw;
+}
+
+/* Project tiles on dashboard */
+a.project-tile {
+  text-decoration: none;
+  color: inherit;
+}
+
+a.project-tile article {
+  height: 100%;
+  transition: box-shadow 0.1s;
+}
+
+a.project-tile:hover article {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
 /* Add project form */
