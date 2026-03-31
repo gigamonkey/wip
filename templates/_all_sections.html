@@ -13,7 +13,7 @@
       <input type="hidden" name="item" value="{{ item.text }}">
       <button class="btn-sm btn-start" title="Start"><i class="bi bi-play-fill"></i></button>
     </form>
-    <button class="btn-sm btn-copy" title="Copy to clipboard" data-text="{{ item.text | e }}" onclick="copyItemText(this)"><i class="bi bi-clipboard"></i></button>
+    <span class="inline-action"><button class="btn-sm btn-copy" title="Copy to clipboard" data-text="{{ item.text | e }}" onclick="copyItemText(this)"><i class="bi bi-clipboard"></i></button></span>
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/delete" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
       <input type="hidden" name="section" value="{{ sec_name }}">
@@ -21,11 +21,11 @@
     </form>
     {% endif %}
     {% if sec_name == "in progress" %}
-    <button class="btn-sm btn-copy" title="Copy to clipboard" data-text="{{ item.text | e }}" onclick="copyItemText(this)"><i class="bi bi-clipboard"></i></button>
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/done" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
       <button class="btn-sm btn-done" title="Mark done"><i class="bi bi-check-lg"></i></button>
     </form>
+    <span class="inline-action"><button class="btn-sm btn-copy" title="Copy to clipboard" data-text="{{ item.text | e }}" onclick="copyItemText(this)"><i class="bi bi-clipboard"></i></button></span>
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/return" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
       <button class="btn-sm" title="Return to backlog"><i class="bi bi-arrow-return-left"></i></button>
