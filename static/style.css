@@ -250,7 +250,7 @@ ul li {
   display: flex;
   gap: 0.25rem;
   flex-shrink: 0;
-  align-items: flex-start;
+  align-items: center;
 }
 
 /* Inline add item in list */
