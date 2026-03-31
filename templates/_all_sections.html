@@ -1,4 +1,12 @@
 {% for sec_name, sec_label in [("in progress", "In progress"), ("backlog", "Backlog"), ("done", "Done")] %}
+{% if sec_name == "done" and plan_files %}
+<h2>Plans</h2>
+<ul>
+  {% for plan in plan_files %}
+  <li><a href="/project/{{ project.name }}/plan/{{ plan.filename }}">{{ plan.name }}</a></li>
+  {% endfor %}
+</ul>
+{% endif %}
 <h2>{{ sec_label }}</h2>
 
 {% if sections[sec_name] or sec_name == "backlog" %}

@@ -46,6 +46,11 @@
   color: var(--pico-secondary-inverse);
 }
 
+.badge-plans {
+  background: var(--pico-muted-border-color);
+  color: var(--pico-color);
+}
+
 /* Task preview in cards */
 .task-preview {
   margin: 0.5rem 0;

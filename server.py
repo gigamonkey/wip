@@ -119,6 +119,18 @@ def project_summary(project):
     return summary
 
 
+def get_plan_files(project):
+    """Return list of .md files in the project's plans/ dir, excluding TODO.md."""
+    plans_dir = Path(project["home"]) / "plans"
+    if not plans_dir.is_dir():
+        return []
+    files = []
+    for f in sorted(plans_dir.iterdir()):
+        if f.suffix.lower() == ".md" and f.name.lower() != "todo.md":
+            files.append({"name": f.stem, "filename": f.name})
+    return files
+
+
 # ---------------------------------------------------------------------------
 # Page routes
 # ---------------------------------------------------------------------------
@@ -143,6 +155,7 @@ def dashboard():
             "more": total - min(total, 3),
             "ip_count": len(items_ip),
             "total": total,
+            "plan_count": len(get_plan_files(project)),
         })
     backlog_by_project.sort(key=lambda p: (p["ip_count"], p["total"]), reverse=True)
     return render_template("dashboard.html", in_progress=in_progress, backlog_by_project=backlog_by_project)
@@ -160,7 +173,21 @@ def project_detail(name):
         for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = []
     description = read_todo_description(text)
-    return render_template("project.html", project=project, description=description, sections=sections)
+    plan_files = get_plan_files(project)
+    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files)
+
+
+@app.route("/project/<name>/plan/<filename>")
+def project_plan(name, filename):
+    project = get_project(name)
+    if not filename.endswith(".md") or "/" in filename:
+        abort(404)
+    plan_path = Path(project["home"]) / "plans" / filename
+    if not plan_path.is_file():
+        abort(404)
+    text = plan_path.read_text()
+    html = Markup(md.markdown(text, extensions=["fenced_code"]))
+    return render_template("plan.html", project=project, plan_name=plan_path.stem, plan_html=html)
 
 
 # ---------------------------------------------------------------------------
@@ -670,7 +697,8 @@ def _render_project_sections(project):
     else:
         for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = []
-    return render_template("_all_sections.html", project=project, sections=sections)
+    plan_files = get_plan_files(project)
+    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files)
 
 
 # ---------------------------------------------------------------------------
