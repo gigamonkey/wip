@@ -13,7 +13,7 @@
     <form class="inline-action" hx-post="/api/project/{{ item.project }}/task/done" hx-target="body" hx-swap="innerHTML" hx-push-url="/">
       <input type="hidden" name="item" value="{{ item.text }}">
       <input type="hidden" name="redirect" value="/">
-      <button class="btn-sm btn-done" title="Mark done">&#10003;</button>
+      <button class="btn-sm btn-done" title="Mark done"><i class="bi bi-check-lg"></i></button>
     </form>
     </span>
     </div>
@@ -26,7 +26,7 @@
 
 <h1>Projects
   <label class="show-all-label"><input type="checkbox" id="show-all" onchange="document.getElementById('project-grid').classList.toggle('show-empty', this.checked)"> Show all</label>
-  <span class="add-trigger" title="Add project" onclick="document.getElementById('add-project-input').style.display='inline-flex'; this.style.display='none'; setTimeout(function(){ document.getElementById('add-project-home').focus(); }, 50);">+</span>
+  <span class="add-trigger" title="Add project" onclick="document.getElementById('add-project-input').style.display='inline-flex'; this.style.display='none'; setTimeout(function(){ document.getElementById('add-project-home').focus(); }, 50);"><i class="bi bi-plus-lg"></i></span>
   <form id="add-project-input" style="display:none" method="post" action="/api/project/add" class="add-project-inline">
     <input id="add-project-home" type="text" name="home" placeholder="~/hacks/my-project" required
            onkeydown="if(event.key==='Escape'){ this.form.style.display='none'; this.form.previousElementSibling.style.display=''; this.value=''; }"

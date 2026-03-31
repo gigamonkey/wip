@@ -11,29 +11,29 @@
     {% if sec_name == "backlog" %}
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/start" hx-target="#all-sections" hx-swap="innerHTML" data-copy="{{ item.text | e }}" hx-on::after-request="copyTextToClipboard(this.dataset.copy)">
       <input type="hidden" name="item" value="{{ item.text }}">
-      <button class="btn-sm btn-start" title="Start">&#9654;</button>
+      <button class="btn-sm btn-start" title="Start"><i class="bi bi-play-fill"></i></button>
     </form>
-    <button class="btn-sm btn-copy" title="Copy to clipboard" data-text="{{ item.text | e }}" onclick="copyItemText(this)">&#128203;</button>
+    <button class="btn-sm btn-copy" title="Copy to clipboard" data-text="{{ item.text | e }}" onclick="copyItemText(this)"><i class="bi bi-clipboard"></i></button>
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/delete" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
       <input type="hidden" name="section" value="{{ sec_name }}">
-      <button class="btn-sm btn-delete" title="Delete">&times;</button>
+      <button class="btn-sm btn-delete" title="Delete"><i class="bi bi-x-lg"></i></button>
     </form>
     {% endif %}
     {% if sec_name == "in progress" %}
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/done" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
-      <button class="btn-sm btn-done" title="Mark done">&#10003;</button>
+      <button class="btn-sm btn-done" title="Mark done"><i class="bi bi-check-lg"></i></button>
     </form>
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/return" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
-      <button class="btn-sm" title="Return to backlog">&#8617;</button>
+      <button class="btn-sm" title="Return to backlog"><i class="bi bi-arrow-return-left"></i></button>
     </form>
     {% endif %}
     {% if sec_name == "done" %}
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/reopen" hx-target="#all-sections" hx-swap="innerHTML">
       <input type="hidden" name="item" value="{{ item.text }}">
-      <button class="btn-sm btn-start" title="Move to In progress">&#9654;</button>
+      <button class="btn-sm btn-start" title="Move to In progress"><i class="bi bi-play-fill"></i></button>
     </form>
     {% endif %}
     </span>
@@ -42,7 +42,7 @@
   {% endfor %}
   {% if sec_name == "backlog" %}
   <li class="add-item">
-    <span class="add-trigger" onclick="var inp=this.parentElement.querySelector('.add-input textarea'); this.parentElement.querySelector('.add-input').style.display='inline'; this.style.display='none'; setTimeout(function(){inp.focus()}, 50);">+</span>
+    <span class="add-trigger" onclick="var inp=this.parentElement.querySelector('.add-input textarea'); this.parentElement.querySelector('.add-input').style.display='inline'; this.style.display='none'; setTimeout(function(){inp.focus()}, 50);"><i class="bi bi-plus-lg"></i></span>
     <form class="add-input inline-action" style="display:none"
           hx-post="/api/project/{{ project.name }}/task/add"
           hx-target="#all-sections"
@@ -80,7 +80,7 @@ function copyTextToClipboard(text) {
 function copyItemText(btn) {
   copyTextToClipboard(btn.dataset.text);
   var orig = btn.innerHTML;
-  btn.innerHTML = '&#10003;';
+  btn.innerHTML = '<i class="bi bi-check-lg"></i>';
   setTimeout(function() { btn.innerHTML = orig; }, 1200);
 }
 
