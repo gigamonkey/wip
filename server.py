@@ -10,17 +10,18 @@ from pathlib import Path
 
 from flask import Flask, render_template, request, abort, redirect, url_for
 from markupsafe import Markup
-import markdown as md
+from markdown_it import MarkdownIt
 
 import wip
 
 app = Flask(__name__)
+md = MarkdownIt()
 
 
 @app.template_filter("markdown")
 def markdown_filter(text):
     """Render inline markdown (no wrapping <p> tag for single-line content)."""
-    html = md.markdown(text, extensions=["fenced_code"])
+    html = md.render(text)
     # Strip wrapping <p>...</p> if it's a single paragraph
     html = html.strip()
     if html.startswith("<p>") and html.endswith("</p>") and html.count("<p>") == 1:
@@ -186,7 +187,7 @@ def project_plan(name, filename):
     if not plan_path.is_file():
         abort(404)
     text = plan_path.read_text()
-    html = Markup(md.markdown(text, extensions=["fenced_code"]))
+    html = Markup(md.render(text))
     return render_template("plan.html", project=project, plan_name=plan_path.stem, plan_html=html)
 
 
