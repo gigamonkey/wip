@@ -23,6 +23,10 @@
     {
       "name": "skills",
       "home": "~/.claude/skills"
+    },
+    {
+      "name": "bhs-awesome",
+      "home": "~/hacks/bhs-awesome"
     }
   ],
   "port": 5555
