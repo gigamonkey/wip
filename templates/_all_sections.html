@@ -1,3 +1,7 @@
+{% if git_status %}
+<h2>Git status</h2>
+<pre class="terminal">{{ git_status }}</pre>
+{% endif %}
 {% for sec_name, sec_label in [("in progress", "In progress"), ("backlog", "Backlog"), ("done", "Done")] %}
 {% if sec_name == "done" and plan_files %}
 <h2>Plans</h2>

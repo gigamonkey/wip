@@ -4,6 +4,7 @@
 import json
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -132,6 +133,24 @@ def get_plan_files(project):
     return files
 
 
+def get_git_status(project):
+    """Return git status output for the project, or None if not a git repo."""
+    home = project["home"]
+    try:
+        result = subprocess.run(
+            ["git", "status"],
+            cwd=home,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return None
+
+
 def get_doc_files(project):
     """Return list of top-level .md files in the project dir, excluding TODO.md."""
     home = Path(project["home"])
@@ -188,7 +207,8 @@ def project_detail(name):
     description = read_todo_description(text)
     plan_files = get_plan_files(project)
     doc_files = get_doc_files(project)
-    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, doc_files=doc_files)
+    git_status = get_git_status(project)
+    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, doc_files=doc_files, git_status=git_status)
 
 
 @app.route("/project/<name>/plan/<filename>")
@@ -725,7 +745,8 @@ def _render_project_sections(project):
         for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = []
     plan_files = get_plan_files(project)
-    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files)
+    git_status = get_git_status(project)
+    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files, git_status=git_status)
 
 
 # ---------------------------------------------------------------------------

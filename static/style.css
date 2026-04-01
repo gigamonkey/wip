@@ -142,6 +142,17 @@ nav ul {
   color: var(--color-muted);
 }
 
+/* Terminal-style git status */
+pre.terminal {
+  background: #0a0a0a;
+  color: #33ff33;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: var(--font-size-sm);
+  padding: 1rem;
+  border-radius: var(--border-radius-card);
+  overflow-x: auto;
+}
+
 /* Task sections on project page */
 .task-section {
   margin-bottom: 2rem;
