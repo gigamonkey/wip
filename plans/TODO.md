@@ -4,8 +4,6 @@ WIP management server
 
 ## In progress
 
-- Add git status to project pages.
-
 ## Backlog
 
 - Add the ability to pin projects on the dashboard page even if they would otherwise be hidden.
@@ -41,4 +39,6 @@ WIP management server
 - Get rid of pico.css and simplify HTML. (2026-03-31T15:35:30)
 
 - Markdown rendering doesn't seem to know how to render tables. (2026-03-31T17:33:25)
+
+- Add git status to project pages. (2026-04-01T13:17:02)
 
