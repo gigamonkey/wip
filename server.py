@@ -15,7 +15,7 @@ from markdown_it import MarkdownIt
 import wip
 
 app = Flask(__name__)
-md = MarkdownIt()
+md = MarkdownIt().enable("table")
 
 
 @app.template_filter("markdown")
