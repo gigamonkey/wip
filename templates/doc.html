@@ -1,0 +1,6 @@
+{% extends "layout.html" %}
+{% block title %}WIP - {{ project.name }} - {{ doc_name }}{% endblock %}
+{% block content %}
+<p><a href="/project/{{ project.name }}">&larr; {{ project.name }}</a></p>
+{{ doc_html }}
+{% endblock %}

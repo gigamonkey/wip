@@ -132,6 +132,18 @@ def get_plan_files(project):
     return files
 
 
+def get_doc_files(project):
+    """Return list of top-level .md files in the project dir, excluding TODO.md."""
+    home = Path(project["home"])
+    if not home.is_dir():
+        return []
+    files = []
+    for f in sorted(home.iterdir()):
+        if f.is_file() and f.suffix.lower() == ".md" and f.name.lower() != "todo.md":
+            files.append({"name": f.stem, "filename": f.name})
+    return files
+
+
 # ---------------------------------------------------------------------------
 # Page routes
 # ---------------------------------------------------------------------------
@@ -175,7 +187,8 @@ def project_detail(name):
             sections[sec_name] = []
     description = read_todo_description(text)
     plan_files = get_plan_files(project)
-    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files)
+    doc_files = get_doc_files(project)
+    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, doc_files=doc_files)
 
 
 @app.route("/project/<name>/plan/<filename>")
@@ -189,6 +202,19 @@ def project_plan(name, filename):
     text = plan_path.read_text()
     html = Markup(md.render(text))
     return render_template("plan.html", project=project, plan_name=plan_path.stem, plan_html=html)
+
+
+@app.route("/project/<name>/doc/<filename>")
+def project_doc(name, filename):
+    project = get_project(name)
+    if not filename.endswith(".md") or "/" in filename:
+        abort(404)
+    doc_path = Path(project["home"]) / filename
+    if not doc_path.is_file():
+        abort(404)
+    text = doc_path.read_text()
+    html = Markup(md.render(text))
+    return render_template("doc.html", project=project, doc_name=doc_path.stem, doc_html=html)
 
 
 # ---------------------------------------------------------------------------

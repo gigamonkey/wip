@@ -3,6 +3,11 @@
 {% block content %}
 <h1>{{ project.name }}</h1>
 {% if description %}<p>{{ description }}</p>{% endif %}
+{% if doc_files %}
+<p class="doc-links">
+  {%- for doc in doc_files %}{% if not loop.first %} &middot; {% endif %}<a href="/project/{{ project.name }}/doc/{{ doc.filename }}">{{ doc.name }}</a>{% endfor -%}
+</p>
+{% endif %}
 
 <div id="all-sections">
   {% include "_all_sections.html" %}
