@@ -16,6 +16,8 @@ WIP management server
 
 - Move the TODOs into a SQLite database.
 
+- Show all counts on dashboard tiles, even if they are zero. And format like "In progress: 0", "backlog: 3", tec.
+
 ## Done
 
 - Move project descriptions into per-project TODO files. The text in the TODO file after the first `#` header should be taken as the projects description. Which means we don't need to collect the description when adding a new project.
