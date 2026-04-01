@@ -4,7 +4,19 @@ WIP management server
 
 ## In progress
 
+- Add git status to project pages.
+
 ## Backlog
+
+- Add the ability to pin projects on the dashboard page even if they would otherwise be hidden.
+
+- Change the editing of items and writing of new items to just be in place rather than in a text box.
+
+- Add a sidebar menu of all the projects with the same information as on their dashboard tiles but maybe with just the numbers in the pills.
+
+- Make the show all option persistant in local storage.
+
+- Move the TODOs into a SQLite database.
 
 ## Done
 
