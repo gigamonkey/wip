@@ -6,9 +6,9 @@ WIP management server
 
 ## Backlog
 
-- Add the ability to pin projects on the dashboard page even if they would otherwise be hidden.
+- Debug why sometimes after editing clicking the play button reloads the page without adding to "In progress". Seems to happen on edits but not after initial creation.
 
-- Change the editing of items and writing of new items to just be in place rather than in a text box.
+- Add the ability to pin projects on the dashboard page even if they would otherwise be hidden.
 
 - Add a sidebar menu of all the projects with the same information as on their dashboard tiles but maybe with just the numbers in the pills.
 
@@ -43,4 +43,6 @@ WIP management server
 - Markdown rendering doesn't seem to know how to render tables. (2026-03-31T17:33:25)
 
 - Add git status to project pages. (2026-04-01T13:17:02)
+
+- Change the editing of items and writing of new items to just be in place rather than in a text box. Editing ends when the user types enter/return. Also allow editing in both "In progress" and "Backlog". (2026-04-02T09:16:43)
 

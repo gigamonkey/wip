@@ -267,19 +267,18 @@ button.btn-sm:hover {
   white-space: nowrap;
 }
 
-/* Inline edit */
-.edit-inline {
-  width: 100%;
+/* Inline edit (contenteditable) */
+.item-text.editing {
+  outline: 1px solid var(--color-border-input);
+  border-radius: var(--border-radius);
+  padding: 0.1rem 0.3rem;
+  min-width: 10em;
+  cursor: text;
 }
 
-.edit-inline textarea {
-  width: 100%;
-  margin-bottom: 0.5rem;
-}
-
-.edit-buttons {
-  display: flex;
-  gap: 0.25rem;
+.item-text.editing:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-muted);
 }
 
 .btn-cancel {

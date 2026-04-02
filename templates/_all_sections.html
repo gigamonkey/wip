@@ -18,7 +18,7 @@
   {% for item in sections[sec_name] %}
   <li {% if sec_name == "backlog" %}draggable="true" data-index="{{ loop.index0 }}"{% endif %}>
     <div class="task-row">
-    <span class="item-text" {% if sec_name == "backlog" %}data-raw="{{ item.text }}" ondblclick="startInlineEdit(this, '{{ project.name }}', '{{ sec_name }}')"{% endif %}>{{ item.text | markdown }}</span>
+    <span class="item-text" {% if sec_name in ("backlog", "in progress") %}data-raw="{{ item.text }}" ondblclick="startInlineEdit(this, '{{ project.name }}', '{{ sec_name }}')"{% endif %}>{{ item.text | markdown }}</span>
     <span class="item-actions">
     {% if sec_name == "backlog" %}
     <form class="inline-action" hx-post="/api/project/{{ project.name }}/task/start" hx-target="#all-sections" hx-swap="innerHTML" data-copy="{{ item.text | e }}" hx-on::after-request="copyTextToClipboard(this.dataset.copy)">
@@ -55,16 +55,7 @@
   {% endfor %}
   {% if sec_name == "backlog" %}
   <li class="add-item">
-    <span class="add-trigger" onclick="var inp=this.parentElement.querySelector('.add-input textarea'); this.parentElement.querySelector('.add-input').style.display='inline'; this.style.display='none'; setTimeout(function(){inp.focus()}, 50);"><i class="bi bi-plus-lg"></i></span>
-    <form class="add-input inline-action" style="display:none"
-          hx-post="/api/project/{{ project.name }}/task/add"
-          hx-target="#all-sections"
-          hx-swap="innerHTML">
-      <input type="hidden" name="section" value="backlog">
-      <textarea name="item" placeholder="New item&hellip;" required rows="2"
-                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();if(this.value.trim())this.form.requestSubmit();}"
-                onblur="var el=this; setTimeout(function(){ if(el.value.trim()) el.form.requestSubmit(); else { el.form.style.display='none'; el.closest('.add-item').querySelector('.add-trigger').style.display=''; } }, 150)"></textarea>
-    </form>
+    <span class="add-trigger" onclick="startInlineAdd(this, '{{ project.name }}')"><i class="bi bi-plus-lg"></i></span>
   </li>
   {% endif %}
 </ul>
@@ -97,32 +88,105 @@ function copyItemText(btn) {
   setTimeout(function() { btn.innerHTML = orig; }, 1200);
 }
 
-// Double-click to edit
+// Double-click to edit in place
 function startInlineEdit(span, projectName, section) {
-  var li = span.closest('li');
   var oldText = span.getAttribute('data-raw') || span.textContent.trim();
-  li.innerHTML = '<form class="edit-inline" onsubmit="return submitInlineEdit(this, \'' + projectName + '\', \'' + encodeURIComponent(oldText) + '\')">' +
-    '<textarea rows="2" name="new_text">' + oldText.replace(/</g, '&lt;') + '</textarea>' +
-    '<div class="edit-buttons"><button class="btn-sm" type="submit">Save</button> ' +
-    '<button class="btn-sm btn-cancel" type="button" onclick="location.reload()">Cancel</button></div></form>';
-  var ta = li.querySelector('textarea');
-  setTimeout(function(){ ta.focus(); }, 50);
+  span.textContent = oldText;
+  span.contentEditable = 'true';
+  span.classList.add('editing');
+  span.focus();
+  // select all text
+  var range = document.createRange();
+  range.selectNodeContents(span);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  function commit() {
+    var newText = span.textContent.trim();
+    span.contentEditable = 'false';
+    span.classList.remove('editing');
+    span.removeEventListener('keydown', onKey);
+    span.removeEventListener('blur', onBlur);
+    if (!newText || newText === oldText) {
+      // reload to restore rendered markdown
+      location.reload();
+      return;
+    }
+    fetch('/api/project/' + projectName + '/task/edit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'item=' + encodeURIComponent(oldText) + '&new_text=' + encodeURIComponent(newText)
+    }).then(function(r) { return r.text(); })
+      .then(function(html) {
+        document.getElementById('all-sections').innerHTML = html;
+        initDragAndDrop();
+      });
+  }
+
+  function cancel() {
+    span.contentEditable = 'false';
+    span.classList.remove('editing');
+    span.removeEventListener('keydown', onKey);
+    span.removeEventListener('blur', onBlur);
+    location.reload();
+  }
+
+  function onKey(e) {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+  }
+  function onBlur() { setTimeout(commit, 100); }
+
+  span.addEventListener('keydown', onKey);
+  span.addEventListener('blur', onBlur);
 }
 
-function submitInlineEdit(form, projectName, encodedOldText) {
-  var newText = form.querySelector('textarea').value.trim();
-  var oldText = decodeURIComponent(encodedOldText);
-  if (!newText || newText === oldText) { location.reload(); return false; }
-  fetch('/api/project/' + projectName + '/task/edit', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: 'item=' + encodeURIComponent(oldText) + '&new_text=' + encodeURIComponent(newText)
-  }).then(function(r) { return r.text(); })
-    .then(function(html) {
-      document.getElementById('all-sections').innerHTML = html;
-      initDragAndDrop();
-    });
-  return false;
+// Inline add new item
+function startInlineAdd(trigger, projectName) {
+  var li = trigger.closest('li');
+  trigger.style.display = 'none';
+  var span = document.createElement('span');
+  span.className = 'item-text editing';
+  span.contentEditable = 'true';
+  span.setAttribute('data-placeholder', 'New item\u2026');
+  li.appendChild(span);
+  span.focus();
+
+  function commit() {
+    var text = span.textContent.trim();
+    span.removeEventListener('keydown', onKey);
+    span.removeEventListener('blur', onBlur);
+    if (!text) {
+      span.remove();
+      trigger.style.display = '';
+      return;
+    }
+    fetch('/api/project/' + projectName + '/task/add', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'section=backlog&item=' + encodeURIComponent(text)
+    }).then(function(r) { return r.text(); })
+      .then(function(html) {
+        document.getElementById('all-sections').innerHTML = html;
+        initDragAndDrop();
+      });
+  }
+
+  function onKey(e) {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      span.removeEventListener('keydown', onKey);
+      span.removeEventListener('blur', onBlur);
+      span.remove();
+      trigger.style.display = '';
+    }
+  }
+  function onBlur() { setTimeout(commit, 100); }
+
+  span.addEventListener('keydown', onKey);
+  span.addEventListener('blur', onBlur);
 }
 
 // Drag and drop reorder
