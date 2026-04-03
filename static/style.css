@@ -153,26 +153,11 @@ pre.terminal {
   overflow-x: auto;
 }
 
-/* Git diff numstat */
-table.numstat {
-  border-collapse: collapse;
-  margin-top: 0.5rem;
-  font-family: "SF Mono", "Menlo", "Consolas", monospace;
-  font-size: var(--font-size-sm);
+pre.terminal a {
+  color: #5af;
+  text-decoration: underline;
 }
 
-table.numstat td {
-  padding: 0.15rem 0.5rem;
-  border: none;
-}
-
-.numstat-added {
-  color: #22863a;
-}
-
-.numstat-removed {
-  color: #cb2431;
-}
 
 /* Wider layout for diff pages */
 .wide-content {

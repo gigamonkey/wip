@@ -1,17 +1,6 @@
 {% if git_status %}
 <h2>Git status</h2>
-<pre class="terminal">{{ git_status }}</pre>
-{% if git_numstat %}
-<table class="numstat">
-  {% for f in git_numstat %}
-  <tr>
-    <td class="numstat-added">+{{ f.added }}</td>
-    <td class="numstat-removed">-{{ f.removed }}</td>
-    <td><a href="/project/{{ project.name }}/diff/{{ f.filename }}">{{ f.filename }}</a></td>
-  </tr>
-  {% endfor %}
-</table>
-{% endif %}
+<pre class="terminal">{{ git_status | linkify_git_status(project.name) }}</pre>
 {% endif %}
 {% for sec_name, sec_label in [("in progress", "In progress"), ("backlog", "Backlog"), ("done", "Done")] %}
 {% if sec_name == "done" and plan_files %}

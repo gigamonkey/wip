@@ -19,6 +19,31 @@ app = Flask(__name__)
 md = MarkdownIt().enable("table")
 
 
+@app.template_filter("linkify_git_status")
+def linkify_git_status_filter(text, project_name):
+    """Make modified/renamed filenames in git status output into diff links."""
+    from markupsafe import escape
+    lines = []
+    in_untracked = False
+    for line in str(text).splitlines():
+        if line.startswith("Untracked files:"):
+            in_untracked = True
+            lines.append(str(escape(line)))
+            continue
+        if in_untracked and line and not line.startswith("\t") and not line.startswith("  "):
+            in_untracked = False
+        m = re.match(r"^(\tmodified:\s+)(.+)$", line)
+        if m:
+            prefix, filename = escape(m.group(1)), m.group(2).strip()
+            lines.append(f'{prefix}<a href="/project/{escape(project_name)}/diff/{escape(filename)}">{escape(filename)}</a>')
+        elif in_untracked and re.match(r"^\t[^\s]", line):
+            filename = line.strip()
+            lines.append(f'\t<a href="/project/{escape(project_name)}/file/{escape(filename)}">{escape(filename)}</a>')
+        else:
+            lines.append(str(escape(line)))
+    return Markup("\n".join(lines))
+
+
 @app.template_filter("markdown")
 def markdown_filter(text):
     """Render inline markdown (no wrapping <p> tag for single-line content)."""
@@ -159,33 +184,6 @@ def get_git_status(project):
     return None
 
 
-def get_git_numstat(project):
-    """Return list of {added, removed, filename} from git diff --numstat."""
-    home = project["home"]
-    try:
-        result = subprocess.run(
-            ["git", "diff", "--numstat"],
-            cwd=home,
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode != 0:
-            return []
-    except (OSError, subprocess.TimeoutExpired):
-        return []
-    files = []
-    for line in result.stdout.strip().splitlines():
-        parts = line.split("\t", 2)
-        if len(parts) == 3:
-            added, removed, filename = parts
-            files.append({
-                "added": added,
-                "removed": removed,
-                "filename": filename,
-            })
-    return files
-
 
 def get_doc_files(project):
     """Return list of top-level .md files in the project dir, excluding TODO.md."""
@@ -244,8 +242,7 @@ def project_detail(name):
     plan_files = get_plan_files(project)
     doc_files = get_doc_files(project)
     git_status = get_git_status(project)
-    git_numstat = get_git_numstat(project)
-    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, doc_files=doc_files, git_status=git_status, git_numstat=git_numstat)
+    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, doc_files=doc_files, git_status=git_status)
 
 
 @app.route("/project/<name>/plan/<filename>")
@@ -322,6 +319,21 @@ def project_diff(name, filename):
         abort(404)
     diff_lines = parse_diff_lines(diff_text)
     return render_template("diff.html", project=project, filename=filename, diff_lines=diff_lines)
+
+
+@app.route("/project/<name>/file/<path:filename>")
+def project_file(name, filename):
+    project = get_project(name)
+    if ".." in filename.split("/"):
+        abort(404)
+    file_path = Path(project["home"]) / filename
+    if not file_path.is_file():
+        abort(404)
+    try:
+        file_text = file_path.read_text()
+    except (UnicodeDecodeError, OSError):
+        abort(404)
+    return render_template("file.html", project=project, filename=filename, file_text=file_text)
 
 
 # ---------------------------------------------------------------------------
@@ -833,8 +845,7 @@ def _render_project_sections(project):
             sections[sec_name] = []
     plan_files = get_plan_files(project)
     git_status = get_git_status(project)
-    git_numstat = get_git_numstat(project)
-    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files, git_status=git_status, git_numstat=git_numstat)
+    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files, git_status=git_status)
 
 
 # ---------------------------------------------------------------------------

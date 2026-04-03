@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}WIP - {{ project.name }} - {{ filename }}{% endblock %}
+{% block main_class %}wide-content{% endblock %}
+{% block content %}
+<p><a href="/project/{{ project.name }}">&larr; {{ project.name }}</a></p>
+<h2>{{ filename }}</h2>
+<div class="diff-wrapper">
+<table class="diff">
+  {% for line in file_text.splitlines() %}
+  <tr>
+    <td class="diff-ln">{{ loop.index }}</td>
+    <td class="diff-code"><pre>{{ line }}</pre></td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}
