@@ -158,6 +158,21 @@ def md_title(path):
     return path.stem
 
 
+def git_creation_ts(filepath, cwd):
+    """Return the unix timestamp of the first commit that added this file, or infinity for untracked files."""
+    try:
+        result = subprocess.run(
+            ["git", "log", "--diff-filter=A", "--follow", "--format=%ct", "--", str(filepath)],
+            cwd=cwd, capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            # Last line is the oldest (first) commit
+            return int(result.stdout.strip().splitlines()[-1])
+    except (OSError, subprocess.TimeoutExpired, ValueError):
+        pass
+    return float("inf")
+
+
 def get_plan_files(project):
     """Return list of .md files in the project's plans/ dir (recursive), excluding TODO.md and plans/done/."""
     plans_dir = Path(project["home"]) / "plans"
@@ -174,7 +189,9 @@ def get_plan_files(project):
         except ValueError:
             pass
         rel = f.relative_to(plans_dir)
-        files.append({"name": md_title(f), "filename": str(rel)})
+        ts = git_creation_ts(f.relative_to(project["home"]), project["home"])
+        files.append({"name": md_title(f), "filename": str(rel), "_ts": ts})
+    files.sort(key=lambda x: x["_ts"])
     return files
 
 
@@ -186,7 +203,9 @@ def get_report_files(project):
     files = []
     for f in sorted(reports_dir.rglob("*.md")):
         rel = f.relative_to(reports_dir)
-        files.append({"name": md_title(f), "filename": str(rel)})
+        ts = git_creation_ts(f.relative_to(project["home"]), project["home"])
+        files.append({"name": md_title(f), "filename": str(rel), "_ts": ts})
+    files.sort(key=lambda x: x["_ts"])
     return files
 
 
