@@ -4,6 +4,8 @@ WIP management server
 
 ## In progress
 
+- Show all counts on dashboard tiles, even if they are zero. And format like "In progress: 0", "backlog: 3", tec.
+
 ## Backlog
 
 - Add the ability to pin projects on the dashboard page even if they would otherwise be hidden.
@@ -14,7 +16,7 @@ WIP management server
 
 - Move the TODOs into a SQLite database.
 
-- Show all counts on dashboard tiles, even if they are zero. And format like "In progress: 0", "backlog: 3", tec.
+- Add a README decribing how to use this software.
 
 ## Done
 
