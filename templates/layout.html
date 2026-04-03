@@ -17,7 +17,7 @@
       <ul><li><a href="/"><strong>WIP</strong></a></li></ul>
     </nav>
   </header>
-  <main class="wrap">
+  <main class="wrap {% block main_class %}{% endblock %}">
     {% block content %}{% endblock %}
   </main>
 </body>

@@ -274,6 +274,33 @@ def project_doc(name, filename):
     return render_template("doc.html", project=project, doc_name=doc_path.stem, doc_html=html)
 
 
+def parse_diff_lines(diff_text):
+    """Parse unified diff text into structured lines with types and line numbers."""
+    lines = []
+    old_num = new_num = 0
+    for raw in diff_text.splitlines():
+        if raw.startswith("@@"):
+            m = re.match(r"@@ -(\d+)", raw)
+            if m:
+                old_num = int(m.group(1))
+                m2 = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)", raw)
+                new_num = int(m2.group(1)) if m2 else old_num
+            lines.append({"type": "hunk", "text": raw, "old": "", "new": ""})
+        elif raw.startswith("diff ") or raw.startswith("index ") or raw.startswith("---") or raw.startswith("+++"):
+            lines.append({"type": "header", "text": raw, "old": "", "new": ""})
+        elif raw.startswith("+"):
+            lines.append({"type": "add", "text": raw, "old": "", "new": str(new_num)})
+            new_num += 1
+        elif raw.startswith("-"):
+            lines.append({"type": "remove", "text": raw, "old": str(old_num), "new": ""})
+            old_num += 1
+        else:
+            lines.append({"type": "context", "text": raw, "old": str(old_num), "new": str(new_num)})
+            old_num += 1
+            new_num += 1
+    return lines
+
+
 @app.route("/project/<name>/diff/<path:filename>")
 def project_diff(name, filename):
     project = get_project(name)
@@ -293,7 +320,8 @@ def project_diff(name, filename):
         diff_text = ""
     if not diff_text:
         abort(404)
-    return render_template("diff.html", project=project, filename=filename, diff_text=diff_text)
+    diff_lines = parse_diff_lines(diff_text)
+    return render_template("diff.html", project=project, filename=filename, diff_lines=diff_lines)
 
 
 # ---------------------------------------------------------------------------
