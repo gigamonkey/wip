@@ -122,14 +122,22 @@ def project_summary(project):
 
 
 def get_plan_files(project):
-    """Return list of .md files in the project's plans/ dir, excluding TODO.md."""
+    """Return list of .md files in the project's plans/ dir (recursive), excluding TODO.md and plans/done/."""
     plans_dir = Path(project["home"]) / "plans"
     if not plans_dir.is_dir():
         return []
     files = []
-    for f in sorted(plans_dir.iterdir()):
-        if f.suffix.lower() == ".md" and f.name.lower() != "todo.md":
-            files.append({"name": f.stem, "filename": f.name})
+    for f in sorted(plans_dir.rglob("*.md")):
+        if f.name.lower() == "todo.md":
+            continue
+        # Skip anything under plans/done/
+        try:
+            f.relative_to(plans_dir / "done")
+            continue
+        except ValueError:
+            pass
+        rel = f.relative_to(plans_dir)
+        files.append({"name": f.stem, "filename": str(rel)})
     return files
 
 
@@ -149,6 +157,34 @@ def get_git_status(project):
     except (OSError, subprocess.TimeoutExpired):
         pass
     return None
+
+
+def get_git_numstat(project):
+    """Return list of {added, removed, filename} from git diff --numstat."""
+    home = project["home"]
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--numstat"],
+            cwd=home,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode != 0:
+            return []
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    files = []
+    for line in result.stdout.strip().splitlines():
+        parts = line.split("\t", 2)
+        if len(parts) == 3:
+            added, removed, filename = parts
+            files.append({
+                "added": added,
+                "removed": removed,
+                "filename": filename,
+            })
+    return files
 
 
 def get_doc_files(project):
@@ -208,7 +244,8 @@ def project_detail(name):
     plan_files = get_plan_files(project)
     doc_files = get_doc_files(project)
     git_status = get_git_status(project)
-    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, doc_files=doc_files, git_status=git_status)
+    git_numstat = get_git_numstat(project)
+    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, doc_files=doc_files, git_status=git_status, git_numstat=git_numstat)
 
 
 @app.route("/project/<name>/plan/<filename>")
@@ -235,6 +272,28 @@ def project_doc(name, filename):
     text = doc_path.read_text()
     html = Markup(md.render(text))
     return render_template("doc.html", project=project, doc_name=doc_path.stem, doc_html=html)
+
+
+@app.route("/project/<name>/diff/<path:filename>")
+def project_diff(name, filename):
+    project = get_project(name)
+    if ".." in filename.split("/"):
+        abort(404)
+    home = project["home"]
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--", filename],
+            cwd=home,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        diff_text = result.stdout.strip() if result.returncode == 0 else ""
+    except (OSError, subprocess.TimeoutExpired):
+        diff_text = ""
+    if not diff_text:
+        abort(404)
+    return render_template("diff.html", project=project, filename=filename, diff_text=diff_text)
 
 
 # ---------------------------------------------------------------------------
@@ -746,7 +805,8 @@ def _render_project_sections(project):
             sections[sec_name] = []
     plan_files = get_plan_files(project)
     git_status = get_git_status(project)
-    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files, git_status=git_status)
+    git_numstat = get_git_numstat(project)
+    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files, git_status=git_status, git_numstat=git_numstat)
 
 
 # ---------------------------------------------------------------------------

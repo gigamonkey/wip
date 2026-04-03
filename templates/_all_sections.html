@@ -1,6 +1,17 @@
 {% if git_status %}
 <h2>Git status</h2>
 <pre class="terminal">{{ git_status }}</pre>
+{% if git_numstat %}
+<table class="numstat">
+  {% for f in git_numstat %}
+  <tr>
+    <td class="numstat-added">+{{ f.added }}</td>
+    <td class="numstat-removed">-{{ f.removed }}</td>
+    <td><a href="/project/{{ project.name }}/diff/{{ f.filename }}">{{ f.filename }}</a></td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
 {% endif %}
 {% for sec_name, sec_label in [("in progress", "In progress"), ("backlog", "Backlog"), ("done", "Done")] %}
 {% if sec_name == "done" and plan_files %}
@@ -81,6 +92,14 @@ function copyTextToClipboard(text) {
   document.body.removeChild(ta);
 }
 
+// After raw fetch+innerHTML swap, tell htmx about the new elements
+function swapSections(html) {
+  var el = document.getElementById('all-sections');
+  el.innerHTML = html;
+  if (typeof htmx !== 'undefined') htmx.process(el);
+  initDragAndDrop();
+}
+
 function copyItemText(btn) {
   copyTextToClipboard(btn.dataset.text);
   var orig = btn.innerHTML;
@@ -118,10 +137,7 @@ function startInlineEdit(span, projectName, section) {
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
       body: 'item=' + encodeURIComponent(oldText) + '&new_text=' + encodeURIComponent(newText)
     }).then(function(r) { return r.text(); })
-      .then(function(html) {
-        document.getElementById('all-sections').innerHTML = html;
-        initDragAndDrop();
-      });
+      .then(swapSections);
   }
 
   function cancel() {
@@ -167,10 +183,7 @@ function startInlineAdd(trigger, projectName) {
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
       body: 'section=backlog&item=' + encodeURIComponent(text)
     }).then(function(r) { return r.text(); })
-      .then(function(html) {
-        document.getElementById('all-sections').innerHTML = html;
-        initDragAndDrop();
-      });
+      .then(swapSections);
   }
 
   function onKey(e) {
@@ -268,10 +281,7 @@ function saveOrder(list) {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({section: 'backlog', order: order})
   }).then(function(r) { return r.text(); })
-    .then(function(html) {
-      document.getElementById('all-sections').innerHTML = html;
-      initDragAndDrop();
-    });
+    .then(swapSections);
 }
 
 // Init on page load and after HTMX swaps

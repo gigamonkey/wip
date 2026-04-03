@@ -4,6 +4,8 @@ WIP management server
 
 ## In progress
 
+- Debug why editing an item sometimes causes an "Item not found" error even though the item is correctly saved as shown when the project page is reloaded.
+
 ## Backlog
 
 - Debug why sometimes after editing clicking the play button reloads the page without adding to "In progress". Seems to happen on edits but not after initial creation.

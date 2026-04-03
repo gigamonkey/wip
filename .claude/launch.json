@@ -4,7 +4,7 @@
     {
       "name": "wip-server",
       "runtimeExecutable": "/Users/peter/.local/bin/uv",
-      "runtimeArgs": ["run", "python", "server.py", "sample-config.json"],
+      "runtimeArgs": ["run", "python", "server.py", "config.json"],
       "port": 5555
     }
   ]
