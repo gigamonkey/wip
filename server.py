@@ -146,6 +146,18 @@ def project_summary(project):
     return summary
 
 
+def md_title(path):
+    """Extract the first # heading from a markdown file, or fall back to the filename stem."""
+    try:
+        for line in path.open():
+            m = re.match(r"^#\s+(.+)$", line.strip())
+            if m:
+                return m.group(1)
+    except OSError:
+        pass
+    return path.stem
+
+
 def get_plan_files(project):
     """Return list of .md files in the project's plans/ dir (recursive), excluding TODO.md and plans/done/."""
     plans_dir = Path(project["home"]) / "plans"
@@ -162,7 +174,19 @@ def get_plan_files(project):
         except ValueError:
             pass
         rel = f.relative_to(plans_dir)
-        files.append({"name": f.stem, "filename": str(rel)})
+        files.append({"name": md_title(f), "filename": str(rel)})
+    return files
+
+
+def get_report_files(project):
+    """Return list of .md files in the project's reports/ dir."""
+    reports_dir = Path(project["home"]) / "reports"
+    if not reports_dir.is_dir():
+        return []
+    files = []
+    for f in sorted(reports_dir.rglob("*.md")):
+        rel = f.relative_to(reports_dir)
+        files.append({"name": md_title(f), "filename": str(rel)})
     return files
 
 
@@ -222,6 +246,7 @@ def dashboard():
             "ip_count": len(items_ip),
             "total": total,
             "plan_count": len(get_plan_files(project)),
+            "report_count": len(get_report_files(project)),
         })
     backlog_by_project.sort(key=lambda p: (p["ip_count"], p["total"]), reverse=True)
     return render_template("dashboard.html", in_progress=in_progress, backlog_by_project=backlog_by_project)
@@ -241,8 +266,9 @@ def project_detail(name):
     description = read_todo_description(text)
     plan_files = get_plan_files(project)
     doc_files = get_doc_files(project)
+    report_files = get_report_files(project)
     git_status = get_git_status(project)
-    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, doc_files=doc_files, git_status=git_status)
+    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, report_files=report_files, doc_files=doc_files, git_status=git_status)
 
 
 @app.route("/project/<name>/plan/<filename>")
@@ -256,6 +282,19 @@ def project_plan(name, filename):
     text = plan_path.read_text()
     html = Markup(md.render(text))
     return render_template("plan.html", project=project, plan_name=plan_path.stem, plan_html=html)
+
+
+@app.route("/project/<name>/report/<filename>")
+def project_report(name, filename):
+    project = get_project(name)
+    if not filename.endswith(".md") or "/" in filename:
+        abort(404)
+    report_path = Path(project["home"]) / "reports" / filename
+    if not report_path.is_file():
+        abort(404)
+    text = report_path.read_text()
+    html = Markup(md.render(text))
+    return render_template("plan.html", project=project, plan_name=report_path.stem, plan_html=html)
 
 
 @app.route("/project/<name>/doc/<filename>")
@@ -844,8 +883,9 @@ def _render_project_sections(project):
         for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = []
     plan_files = get_plan_files(project)
+    report_files = get_report_files(project)
     git_status = get_git_status(project)
-    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files, git_status=git_status)
+    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files, report_files=report_files, git_status=git_status)
 
 
 # ---------------------------------------------------------------------------

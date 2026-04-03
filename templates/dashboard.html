@@ -43,6 +43,7 @@
         {% if proj.ip_count %}<span class="badge badge-progress">{{ proj.ip_count }} in progress</span>{% endif %}
         {% if proj.total %}<span class="badge badge-next">{{ proj.total }} backlog</span>{% endif %}
         {% if proj.plan_count %}<span class="badge badge-plans">{{ proj.plan_count }} plan{{ "s" if proj.plan_count != 1 }}</span>{% endif %}
+        {% if proj.report_count %}<span class="badge badge-plans">{{ proj.report_count }} report{{ "s" if proj.report_count != 1 }}</span>{% endif %}
       </div>
     </article>
   </a>

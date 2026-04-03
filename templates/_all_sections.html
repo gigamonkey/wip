@@ -11,6 +11,14 @@
   {% endfor %}
 </ul>
 {% endif %}
+{% if sec_name == "done" and report_files %}
+<h2>Reports</h2>
+<ul>
+  {% for report in report_files %}
+  <li><a href="/project/{{ project.name }}/report/{{ report.filename }}">{{ report.name }}</a></li>
+  {% endfor %}
+</ul>
+{% endif %}
 <h2>{{ sec_label }}</h2>
 
 {% if sections[sec_name] or sec_name == "backlog" %}
