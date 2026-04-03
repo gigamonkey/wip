@@ -3,13 +3,25 @@
 <pre class="terminal">{{ git_status | linkify_git_status(project.name) }}</pre>
 {% endif %}
 {% for sec_name, sec_label in [("in progress", "In progress"), ("backlog", "Backlog"), ("done", "Done")] %}
-{% if sec_name == "done" and plan_files %}
+{% if sec_name == "done" and (plan_files or done_plan_files) %}
 <h2>Plans</h2>
+{% if plan_files %}
 <ul>
   {% for plan in plan_files %}
   <li><a href="/project/{{ project.name }}/plan/{{ plan.filename }}">{{ plan.name }}</a></li>
   {% endfor %}
 </ul>
+{% endif %}
+{% if done_plan_files %}
+<details>
+  <summary>Done</summary>
+  <ul>
+    {% for plan in done_plan_files %}
+    <li><a href="/project/{{ project.name }}/plan/{{ plan.filename }}">{{ plan.name }}</a></li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
 {% endif %}
 {% if sec_name == "done" and report_files %}
 <h2>Reports</h2>

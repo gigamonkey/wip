@@ -195,6 +195,22 @@ def get_plan_files(project):
     return files
 
 
+def get_done_plan_files(project):
+    """Return list of .md files in the project's plans/done/ dir."""
+    done_dir = Path(project["home"]) / "plans" / "done"
+    if not done_dir.is_dir():
+        return []
+    files = []
+    for f in sorted(done_dir.rglob("*.md")):
+        if f.name.lower() == "todo.md":
+            continue
+        rel = f.relative_to(Path(project["home"]) / "plans")
+        ts = git_creation_ts(f.relative_to(project["home"]), project["home"])
+        files.append({"name": md_title(f), "filename": str(rel), "_ts": ts})
+    files.sort(key=lambda x: x["_ts"])
+    return files
+
+
 def get_report_files(project):
     """Return list of .md files in the project's reports/ dir."""
     reports_dir = Path(project["home"]) / "reports"
@@ -284,10 +300,11 @@ def project_detail(name):
             sections[sec_name] = []
     description = read_todo_description(text)
     plan_files = get_plan_files(project)
+    done_plan_files = get_done_plan_files(project)
     doc_files = get_doc_files(project)
     report_files = get_report_files(project)
     git_status = get_git_status(project)
-    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, report_files=report_files, doc_files=doc_files, git_status=git_status)
+    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, done_plan_files=done_plan_files, report_files=report_files, doc_files=doc_files, git_status=git_status)
 
 
 @app.route("/project/<name>/plan/<filename>")
@@ -902,9 +919,10 @@ def _render_project_sections(project):
         for sec_name in ("in progress", "backlog", "done"):
             sections[sec_name] = []
     plan_files = get_plan_files(project)
+    done_plan_files = get_done_plan_files(project)
     report_files = get_report_files(project)
     git_status = get_git_status(project)
-    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files, report_files=report_files, git_status=git_status)
+    return render_template("_all_sections.html", project=project, sections=sections, plan_files=plan_files, done_plan_files=done_plan_files, report_files=report_files, git_status=git_status)
 
 
 # ---------------------------------------------------------------------------
