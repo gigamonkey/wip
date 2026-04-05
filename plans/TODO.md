@@ -4,17 +4,19 @@ WIP management server
 
 ## In progress
 
+- Lazily scan `done/`. Only scan them if the user expands the done section under Plans.
+
 ## Backlog
+
+- Add a README decribing how to use this software.
 
 - Add the ability to pin projects on the dashboard page even if they would otherwise be hidden.
 
+- Make the show all option and pinned projects persistant in local storage.
+
 - Add a sidebar menu of all the projects with the same information as on their dashboard tiles but maybe with just the numbers in the pills.
 
-- Make the show all option persistant in local storage.
-
 - Move the TODOs into a SQLite database.
-
-- Add a README decribing how to use this software.
 
 ## Done
 
