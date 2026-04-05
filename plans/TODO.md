@@ -4,8 +4,6 @@ WIP management server
 
 ## In progress
 
-- Lazily scan `done/`. Only scan them if the user expands the done section under Plans.
-
 ## Backlog
 
 - Add a README decribing how to use this software.
@@ -47,4 +45,6 @@ WIP management server
 - Change the editing of items and writing of new items to just be in place rather than in a text box. Editing ends when the user types enter/return. Also allow editing in both "In progress" and "Backlog". (2026-04-02T09:16:43)
 
 - Show all counts on dashboard tiles, even if they are zero. And format like "In progress: 0", "backlog: 3", tec. (2026-04-03T14:45:48)
+
+- Lazily scan `done/`. Only scan them if the user expands the done section under Plans. (2026-04-04T20:06:36)
 

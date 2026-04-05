@@ -300,11 +300,12 @@ def project_detail(name):
             sections[sec_name] = []
     description = read_todo_description(text)
     plan_files = get_plan_files(project)
-    done_plan_files = get_done_plan_files(project)
+    done_dir = Path(project["home"]) / "plans" / "done"
+    has_done_plans = done_dir.is_dir() and any(done_dir.rglob("*.md"))
     doc_files = get_doc_files(project)
     report_files = get_report_files(project)
     git_status = get_git_status(project)
-    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, done_plan_files=done_plan_files, report_files=report_files, doc_files=doc_files, git_status=git_status)
+    return render_template("project.html", project=project, description=description, sections=sections, plan_files=plan_files, has_done_plans=has_done_plans, report_files=report_files, doc_files=doc_files, git_status=git_status)
 
 
 @app.route("/project/<name>/plan/<filename>")
@@ -318,6 +319,13 @@ def project_plan(name, filename):
     text = plan_path.read_text()
     html = Markup(md.render(text))
     return render_template("plan.html", project=project, plan_name=plan_path.stem, plan_html=html)
+
+
+@app.route("/project/<name>/done-plans")
+def project_done_plans(name):
+    project = get_project(name)
+    done_plan_files = get_done_plan_files(project)
+    return render_template("_done_plans.html", project=project, done_plan_files=done_plan_files)
 
 
 @app.route("/project/<name>/report/<filename>")

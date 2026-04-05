@@ -1,0 +1,5 @@
+<ul>
+  {% for plan in done_plan_files %}
+  <li><a href="/project/{{ project.name }}/plan/{{ plan.filename }}">{{ plan.name }}</a></li>
+  {% endfor %}
+</ul>
