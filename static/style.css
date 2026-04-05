@@ -508,3 +508,12 @@ a.project-tile:hover article {
   margin-bottom: 0;
   white-space: nowrap;
 }
+
+td {
+  border-bottom: 1px dotted grey;
+
+}
+
+tr:first-child td {
+  border-top: 1px dotted grey;
+}
